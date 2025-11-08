@@ -44,6 +44,7 @@ class Order extends Model
      */
     protected $fillable = [
         // Core Details
+        'id',
         'order_brand',
         'order_productName',
         'order_labelType',

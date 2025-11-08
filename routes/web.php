@@ -3,6 +3,8 @@
 use App\Http\Controllers\loginController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\brandcontroller;
+use App\Http\Controllers\ReportController;
+use App\Http\Controllers\ImportController;
 
 use Illuminate\Support\Facades\Route;
 
@@ -130,7 +132,14 @@ Route::get('/logout', [loginController::class, 'logout'])->name('logout');
     });
 
 
-
-
-
-//});
+    Route::prefix('reports')->group(function () {
+        Route::get('/buyer-report', [ReportController::class, 'buyerReport'])->name('reports.buyer');
+        
+        // ADD THIS NEW ROUTE
+        Route::post('/generate-buyer-report', [ReportController::class, 'generateBuyerReport'])->name('reports.generateBuyerReport');
+    });
+    Route::get('/info', function() { phpinfo(); });
+    Route::prefix('import')->group(function () {
+    Route::get('/', [ImportController::class, 'index'])->name('import.index');
+    Route::post('/upload', [ImportController::class, 'upload'])->name('import.upload');
+});

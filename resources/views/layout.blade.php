@@ -64,6 +64,18 @@
 
             </ul>
           </li>
+          <li class="mb-2">
+            <a href="{{ route('reports.buyer') }}" class="w-full text-left flex justify-between items-center py-2 px-4 rounded hover:bg-gray-700 focus:outline-none">
+                <span><i class="fas fa-chart-bar mr-2"></i>Reports</span>
+            </a>
+          </li>
+
+          {{-- *** ADD THIS NEW LINK *** --}}
+          <li class="mb-2">
+            <a href="{{ route('import.index') }}" class="w-full text-left flex justify-between items-center py-2 px-4 rounded hover:bg-gray-700 focus:outline-none">
+                <span><i class="fas fa-file-upload mr-2"></i>Import Data</span>
+            </a>
+          </li>
         </ul>
       </nav>
     </aside>

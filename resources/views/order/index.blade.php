@@ -1,5 +1,4 @@
 @extends('layout')
-
 @section('title', 'Manage Orders')
 
 @section('content')
@@ -21,9 +20,7 @@
     </div>
 @endif
 
-{{-- ========================================================= --}}
-{{-- ============== START: NEW SUMMARY SECTION =============== --}}
-{{-- ========================================================= --}}
+
 
 @php
     // Calculate totals from the collection
@@ -64,16 +61,28 @@
 
 
 <div class="bg-white shadow rounded p-4">
-    <form action="{{ route('order.updateStatus') }}" method="POST">
+    <form action="{{ route('order.updateStatus') }}" method="POST" id="order-form">
         @csrf
 
         <div class="border-b pb-4 mb-4">
             <h2 class="text-lg font-semibold mb-2">In-line Order Editing</h2>
-            <p class="text-sm text-gray-600 mb-4">You can edit the details for each order directly in the table below. Click the "Update All Orders" button when you are finished to save all changes.</p>
+            <p class="text-sm text-gray-600 mb-4">Select orders using the checkboxes. Then, either update their details or generate a report.</p>
             <div class="flex space-x-2">
-                <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-                    <i class="fa-solid fa-save mr-1"></i> Update All Orders
+                
+                {{-- Button 1: Update All Orders --}}
+                <button type="submit" 
+                        formaction="{{ route('order.updateStatus') }}" 
+                        class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                    <i class="fa-solid fa-save mr-1"></i> Update Selected Orders
                 </button>
+                
+                {{-- Button 2: Generate Buyer Report --}}
+                <button type="submit" 
+                        formaction="{{ route('reports.generateBuyerReport') }}"
+                        class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+                    <i class="fas fa-file-invoice mr-2"></i> Generate Buyer Report
+                </button>
+                
                 <button type="button" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600" onclick="window.location.reload();">
                     <i class="fa-solid fa-rotate-right mr-1"></i> Reset Page
                 </button>
@@ -84,14 +93,16 @@
             <table class="min-w-full text-sm text-left border border-gray-200">
                 <thead class="bg-gray-100">
                     <tr>
-                        {{-- Non-editable columns --}}
+                        {{-- ADDED: Checkbox Header --}}
+                        <th class="p-2 border">
+                            <input type="checkbox" id="select-all">
+                        </th>
+                        
                         <th class="p-2 border">#</th>
                         <th class="p-2 border">Order No</th>
                         <th class="p-2 border">Product</th>
                         <th class="p-2 border">Buyer</th>
                         <th class="p-2 border">Order Qty</th>
-
-                        {{-- Editable columns --}}
                         <th class="p-2 border">Status</th>
                         <th class="p-2 border">Manuf. Qty</th>
                         <th class="p-2 border">Delivery Date</th>
@@ -107,6 +118,11 @@
                 <tbody>
                     @forelse($orders as $order)
                         <tr class="hover:bg-gray-50">
+                            {{-- ADDED: Checkbox Data --}}
+                            <td class="p-1 border align-top">
+                                <input type="checkbox" name="order_ids[]" value="{{ $order->id }}" class="order-checkbox">
+                            </td>
+
                             {{-- Non-editable data --}}
                             <td class="p-1 border align-top">{{ $loop->iteration }}</td>
                             <td class="p-1 border align-top">{{ $order->id }}</td>
@@ -118,7 +134,13 @@
                             <td class="p-1 border">
                                 <select name="updates[{{ $order->id }}][order_status]" class="w-full border-gray-300 rounded text-xs p-1">
                                     @foreach($statuses as $status)
-                                        <option value="{{ $status->id }}" @if($order->order_status == $status->id) selected @endif>{{ $status->status_name }}</option>
+                                        {{-- 
+                                          THIS IS THE FIX:
+                                          Replaced the @if/@endif with the @selected directive.
+                                        --}}
+                                        <option value="{{ $status->id }}" @selected($order->order_status == $status->id)>
+                                            {{ $status->status_name }}
+                                        </option>
                                     @endforeach
                                 </select>
                             </td>
@@ -145,7 +167,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="15" class="p-4 text-center text-gray-500">No orders found.</td>
+                            <td colspan="16" class="p-4 text-center text-gray-500">No orders found.</td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -156,5 +178,12 @@
 @endsection
 
 @section('footer')
-{{-- No specific JS needed for this approach --}}
+{{-- ADDED: JavaScript for "Select All" --}}
+<script>
+    document.getElementById('select-all').addEventListener('change', function(e) {
+        document.querySelectorAll('.order-checkbox').forEach(function(checkbox) {
+            checkbox.checked = e.target.checked;
+        });
+    });
+</script>
 @endsection

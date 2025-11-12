@@ -2,6 +2,11 @@
 
 @section('title', 'Manage Orders')
 
+{{-- 1. Add DataTables CSS --}}
+@section('header')
+<link rel="stylesheet" href="https://cdn.datatables.net/2.0.8/css/dataTables.tailwindcss.css">
+@endsection
+
 @section('content')
 <h1 class="text-2xl font-bold mb-4">Order Management</h1>
 
@@ -10,6 +15,7 @@
         {{ session('message') }}
     </div>
 @endif
+
 @if ($errors->any())
     <div class="mb-4 p-4 bg-red-100 text-red-800 border border-red-300 rounded">
         <strong>Whoops! Something went wrong.</strong>
@@ -22,17 +28,12 @@
 @endif
 
 {{-- ========================================================= --}}
-{{-- ============== START: NEW SUMMARY SECTION =============== --}}
+{{-- ============== SUMMARY SECTION =============== --}}
 {{-- ========================================================= --}}
-
 @php
-    // Calculate totals from the collection
     $totalOrderedQty = $orders->sum('order_qty');
     $totalManufacturedQty = $orders->sum('order_manufacturedqty');
-
-    // Calculate total sale (buyer side) and purchase (supplier side)
     $totalSale = $orders->sum('buyer_total');
-
     $totalPurchase = $orders->sum('supplier_total');
 @endphp
 
@@ -59,20 +60,23 @@
 </div>
 
 {{-- ========================================================= --}}
-{{-- =============== END: NEW SUMMARY SECTION ================ --}}
+{{-- =============== IN-LINE EDITING FORM ================ --}}
 {{-- ========================================================= --}}
-
-
 <div class="bg-white shadow rounded p-4">
     <form action="{{ route('order.updateStatus') }}" method="POST">
         @csrf
 
         <div class="border-b pb-4 mb-4">
             <h2 class="text-lg font-semibold mb-2">In-line Order Editing</h2>
-            <p class="text-sm text-gray-600 mb-4">You can edit the details for each order directly in the table below. Click the "Update All Orders" button when you are finished to save all changes.</p>
+            <p class="text-sm text-gray-600 mb-4">Select orders to generate a report, or edit details and click "Update All Orders".</p>
             <div class="flex space-x-2">
                 <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
                     <i class="fa-solid fa-save mr-1"></i> Update All Orders
+                </button>
+                <button type="submit" 
+                        formaction="{{ route('reports.generateBuyerReport') }}"
+                        class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+                    <i class="fas fa-file-invoice mr-2"></i> Generate Buyer Report
                 </button>
                 <button type="button" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600" onclick="window.location.reload();">
                     <i class="fa-solid fa-rotate-right mr-1"></i> Reset Page
@@ -81,23 +85,25 @@
         </div>
 
         <div class="overflow-x-auto">
-            <table class="min-w-full text-sm text-left border border-gray-200">
+            <table id="orders-table" class="min-w-full text-sm text-left border border-gray-200">
                 <thead class="bg-gray-100">
                     <tr>
-                        {{-- Non-editable columns --}}
+                        <th class="p-2 border w-4">
+                            <input type="checkbox" id="select-all">
+                        </th>
                         <th class="p-2 border">#</th>
+                        <th class="p-2 border">Image</th> {{-- 🖼️ New Image Column --}}
                         <th class="p-2 border">Order No</th>
                         <th class="p-2 border">Product</th>
                         <th class="p-2 border">Buyer</th>
                         <th class="p-2 border">Order Qty</th>
-
-                        {{-- Editable columns --}}
                         <th class="p-2 border">Status</th>
                         <th class="p-2 border">Manuf. Qty</th>
                         <th class="p-2 border">Delivery Date</th>
                         <th class="p-2 border">Weight</th>
                         <th class="p-2 border">Buyer Price</th>
                         <th class="p-2 border">Buyer Mould</th>
+                        <th class="p-2 border">Supplier</th>
                         <th class="p-2 border">Supplier Price</th>
                         <th class="p-2 border">Supplier Mould</th>
                         <th class="p-2 border">Remark</th>
@@ -107,18 +113,34 @@
                 <tbody>
                     @forelse($orders as $order)
                         <tr class="hover:bg-gray-50">
-                            {{-- Non-editable data --}}
+                            <td class="p-1 border align-top">
+                                <input type="checkbox" name="order_ids[]" value="{{ $order->id }}" class="order-checkbox">
+                            </td>
                             <td class="p-1 border align-top">{{ $loop->iteration }}</td>
+
+                            {{-- 🖼️ Image Column --}}
+                            <td class="p-1 border align-top text-center">
+                                @if(!empty($order->order_image))
+                                    <img 
+                                        src="{{ asset('storage/app/public/' . $order->order_image) }}" 
+                                        alt="Order Image" 
+                                        class="w-12 h-12 object-cover rounded border" >                           
+                                    
+                              
+                                @endif
+                            </td>
+
                             <td class="p-1 border align-top">{{ $order->id }}</td>
                             <td class="p-1 border align-top">{{ $order->product->product_name ?? '-' }}</td>
                             <td class="p-1 border align-top">{{ $order->buyer->buyer_name ?? '-' }}</td>
                             <td class="p-1 border align-top">{{ $order->order_qty }}</td>
 
-                            {{-- Editable fields --}}
                             <td class="p-1 border">
                                 <select name="updates[{{ $order->id }}][order_status]" class="w-full border-gray-300 rounded text-xs p-1">
                                     @foreach($statuses as $status)
-                                        <option value="{{ $status->id }}" @if($order->order_status == $status->id) selected @endif>{{ $status->status_name }}</option>
+                                        <option value="{{ $status->id }}" @if($order->order_status == $status->id) selected @endif>
+                                            {{ $status->status_name }}
+                                        </option>
                                     @endforeach
                                 </select>
                             </td>
@@ -127,11 +149,20 @@
                             <td class="p-1 border"><input type="number" step="any" name="updates[{{ $order->id }}][order_weight]" value="{{ $order->order_weight }}" class="w-20 border-gray-300 rounded text-xs p-1"></td>
                             <td class="p-1 border"><input type="number" step="any" name="updates[{{ $order->id }}][order_price]" value="{{ $order->order_price }}" class="w-20 border-gray-300 rounded text-xs p-1"></td>
                             <td class="p-1 border"><input type="number" step="any" name="updates[{{ $order->id }}][order_mouldprice]" value="{{ $order->order_mouldprice }}" class="w-20 border-gray-300 rounded text-xs p-1"></td>
+                            <td class="p-1 border">
+                                <select name="updates[{{ $order->id }}][supplier_id]" class="w-full border-gray-300 rounded text-xs p-1">
+                                    <option value="">-- No Supplier --</option>
+                                    @foreach($suppliers as $supplier)
+                                        <option value="{{ $supplier->id }}" @selected($order->supplier_id == $supplier->id)>
+                                            {{ $supplier->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </td>
                             <td class="p-1 border"><input type="number" step="any" name="updates[{{ $order->id }}][supplier_price]" value="{{ $order->supplier_price }}" class="w-20 border-gray-300 rounded text-xs p-1"></td>
                             <td class="p-1 border"><input type="number" step="any" name="updates[{{ $order->id }}][supplier_mould_price]" value="{{ $order->supplier_mould_price }}" class="w-20 border-gray-300 rounded text-xs p-1"></td>
                             <td class="p-1 border"><textarea name="updates[{{ $order->id }}][order_remark]" class="w-full border-gray-300 rounded text-xs p-1" rows="1">{{ $order->order_remark }}</textarea></td>
 
-                            {{-- Action links --}}
                             <td class="p-1 border align-top">
                                 <div class="flex space-x-2">
                                     <a href="{{ route('order.show', $order->id) }}" class="text-blue-600 hover:underline" title="View">
@@ -145,7 +176,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="15" class="p-4 text-center text-gray-500">No orders found.</td>
+                            <td colspan="17" class="p-4 text-center text-gray-500">No orders found.</td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -156,5 +187,23 @@
 @endsection
 
 @section('footer')
-{{-- No specific JS needed for this approach --}}
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.datatables.net/2.0.8/js/dataTables.js"></script>
+<script src="https://cdn.datatables.net/2.0.8/js/dataTables.tailwindcss.js"></script>
+
+<script>
+$(document).ready(function() {
+    $('#orders-table').DataTable({
+        "lengthMenu": [[20, 50, 100, 300, -1], [20, 50, 100, 300, "All"]],
+        "pageLength": 20,
+        "columnDefs": [
+            { "orderable": false, "targets": [0, 16] } 
+        ]
+    });
+
+    $('#select-all').on('click', function() {
+        $('.order-checkbox').prop('checked', this.checked);
+    });
+});
+</script>
 @endsection

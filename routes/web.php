@@ -5,14 +5,13 @@ use App\Http\Controllers\OrderController;
 use App\Http\Controllers\brandcontroller;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ImportController;
-
+use App\Http\Controllers\SupplierController; // <-- Added Supplier
 use Illuminate\Support\Facades\Route;
 
 Route::get('/',[loginController::class, 'login'])->name('login');
 Route::post('/authenticate', [loginController::class, 'authenticate'])->name('authenticate');
 Route::get('/logout', [loginController::class, 'logout'])->name('logout');
 
-//generate all routes excepts those are already there also create groups
 //Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', function () {
         return view('dashboard');
@@ -22,7 +21,6 @@ Route::get('/logout', [loginController::class, 'logout'])->name('logout');
     Route::prefix('brand')->group(function () {
         Route::get('/', [brandcontroller::class, 'index'])->name('brand.index');
         Route::get('/create', [brandcontroller::class, 'create'])->name('brand.create');
-
         Route::post('/store', [brandcontroller::class, 'store'])->name('brand.store');
         Route::get('/{id}/edit', [brandcontroller::class, 'edit'])->name('brand.edit');
         Route::put('/{id}', [brandcontroller::class, 'update'])->name('brand.update');
@@ -43,8 +41,6 @@ Route::get('/logout', [loginController::class, 'logout'])->name('logout');
     Route::prefix('shipper')->group(function () {
         Route::get('/', [\App\Http\Controllers\shipperController::class, 'index'])->name('shipper.index');
         Route::get('/create', [\App\Http\Controllers\shipperController::class, 'create'])->name('shipper.create');
-        Route::post('/store', [\App\Http\Controllers\shipperController::class, 'store'])->name('shipper.create');
-
         Route::post('/store', [\App\Http\Controllers\shipperController::class, 'store'])->name('shipper.store');
         Route::get('/{id}/edit', [\App\Http\Controllers\shipperController::class, 'edit'])->name('shipper.edit');
         Route::put('/{id}', [\App\Http\Controllers\shipperController::class, 'update'])->name('shipper.update');
@@ -100,7 +96,7 @@ Route::get('/logout', [loginController::class, 'logout'])->name('logout');
         Route::put('/{id}', [\App\Http\Controllers\dunitController::class, 'update'])->name('dunit.update');
         Route::delete('/{id}', [\App\Http\Controllers\dunitController::class, 'destroy'])->name('dunit.destroy');
     });
-    //generate other routes too also order routes
+
     // Product Routes
     Route::prefix('products')->group(function () {
         Route::get('/', [\App\Http\Controllers\productController::class, 'index'])->name('products.index');
@@ -110,36 +106,61 @@ Route::get('/logout', [loginController::class, 'logout'])->name('logout');
         Route::put('/{id}', [\App\Http\Controllers\productController::class, 'update'])->name('products.update');
         Route::delete('/{id}', [\App\Http\Controllers\productController::class, 'destroy'])->name('products.destroy');
     });
-        Route::get('/home', [OrderController::class, 'new'])->name('home');
+    
+    // Supplier Routes
+    Route::prefix('supplier')->group(function () {
+        Route::get('/', [SupplierController::class, 'index'])->name('supplier.index');
+        Route::get('/create', [SupplierController::class, 'create'])->name('supplier.create');
+        Route::post('/store', [SupplierController::class, 'store'])->name('supplier.store');
+        Route::get('/{supplier}/edit', [SupplierController::class, 'edit'])->name('supplier.edit');
+        Route::put('/{supplier}', [SupplierController::class, 'update'])->name('supplier.update');
+        Route::delete('/{supplier}', [SupplierController::class, 'destroy'])->name('supplier.destroy');
+    });
+
+    Route::get('/home', [OrderController::class, 'new'])->name('home');
 
     // Order Routes
     Route::prefix('order')->group(function () {
-
+        // This is the main page for ALL orders
+        Route::get('/', [OrderController::class, 'index'])->name('order.index');
+        
+        // Create new orders
         Route::get('/new', [OrderController::class, 'new'])->name('order.new');
         Route::post('/create', [OrderController::class, 'create'])->name('order.create');
-        Route::get('/all', [OrderController::class, 'all'])->name('order.all');
-        Route::get('/pending', [OrderController::class, 'pending'])->name('order.pending');
-        Route::get('/shipped', [OrderController::class, 'shipped'])->name('order.shipped');
-        Route::get('/delivered', [OrderController::class, 'delivered'])->name('order.delivered');
-        Route::get('/ready', [OrderController::class, 'ready'])->name('order.ready');
-        Route::get('/cancelled', [OrderController::class, 'cancelled'])->name('order.cancelled');
-        Route::post('/update-status/', [OrderController::class, 'updateStatus'])->name('order.updateStatus');
+
+        // View single order (PO)
         Route::get('/{id}', [OrderController::class, 'show'])->name('order.show');
-        Route::delete('/{id}', [OrderController::class, 'delete'])->name('order.delete');
+
+        // *** ADD THIS ROUTE FOR THE MODAL ***
         Route::get('/{id}/edit', [OrderController::class, 'edit'])->name('order.edit');
+        
+        // *** ADD THIS ROUTE FOR THE MODAL SUBMISSION ***
         Route::put('/{id}', [OrderController::class, 'update'])->name('order.update');
-        Route::delete('/{id}', [OrderController::class, 'destroy'])->name('order.destroy');
+
+        // *** ADD THIS ROUTE FOR THE DUPLICATE BUTTON ***
+        Route::post('/{id}/duplicate', [OrderController::class, 'duplicate'])->name('order.duplicate');
+
+        // Delete order
+        Route::delete('/{id}', [OrderController::class, 'delete'])->name('order.delete');
+        
+        // Inline-edit form submission
+        Route::post('/update-status/', [OrderController::class, 'updateStatus'])->name('order.updateStatus');
     });
 
+    // DataTables AJAX route
+    Route::get('orders/data', [OrderController::class, 'getOrdersData'])->name('order.data');
 
+    // Report Routes
     Route::prefix('reports')->group(function () {
         Route::get('/buyer-report', [ReportController::class, 'buyerReport'])->name('reports.buyer');
-        
-        // ADD THIS NEW ROUTE
         Route::post('/generate-buyer-report', [ReportController::class, 'generateBuyerReport'])->name('reports.generateBuyerReport');
     });
+
     Route::get('/info', function() { phpinfo(); });
+    
+    // Import Routes
     Route::prefix('import')->group(function () {
-    Route::get('/', [ImportController::class, 'index'])->name('import.index');
-    Route::post('/upload', [ImportController::class, 'upload'])->name('import.upload');
+        Route::get('/', [ImportController::class, 'index'])->name('import.index');
+        Route::post('/upload', [ImportController::class, 'upload'])->name('import.upload');
 });
+//});

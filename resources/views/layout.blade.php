@@ -18,11 +18,12 @@
     </div>
 
     <nav class="flex space-x-6 items-center text-sm text-gray-700">
-      <a href="{{ route('order.new') }}" class="hover:text-blue-600 flex items-center gap-1"><i class="fa-solid fa-plus"></i> Create</a>
+      {{-- -<a href="{{ route('order.new') }}" class="hover:text-blue-600 flex items-center gap-1"><i class="fa-solid fa-plus"></i> Create</a>
       <a href="{{ route('order.pending') }}" class="hover:text-yellow-600 flex items-center gap-1"><i class="fa-regular fa-clock"></i> Pending</a>
       <a href="{{ route('order.delivered') }}" class="hover:text-green-600 flex items-center gap-1"><i class="fa-solid fa-truck"></i> Delivered</a>
       <a href="{{ route('order.ready') }}" class="hover:text-purple-600 flex items-center gap-1"><i class="fa-solid fa-box"></i> Ready</a>
-      <a href="{{ route('order.all') }}" class="hover:text-gray-800 flex items-center gap-1"><i class="fa-solid fa-list"></i> All Orders</a>
+      <a href="{{ route('order.all') }}" class="hover:text-gray-800 flex items-center gap-1"><i class="fa-solid fa-list"></i> All Orders</a>--}}
+      <a href="{{ route('order.index') }}" class="hover:text-gray-800 flex items-center gap-1"><i class="fa-solid fa-list"></i> All Orders</a>
       <a href="{{ route('logout') }}" class="hover:text-red-600 flex items-center gap-1"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
     </nav>
   </header>
@@ -45,8 +46,10 @@
                 <li><a href="{{ route('status.index') }}" class="block py-2 px-4 rounded hover:bg-gray-700"><i class="fas fa-clipboard-list mr-2"></i>Status</a></li>
                 <li><a href="{{ route(name: 'products.index') }}" class="block py-2 px-4 rounded hover:bg-gray-700"><i class="fas fa-tag mr-2"></i>Products</a></li>
                 <li><a href="{{ route('shipper.index') }}" class="block py-2 px-4 rounded hover:bg-gray-700"><i class="fas fa-tag mr-2"></i>Shippers</a></li>
-                <li><a href="{{ route('status.index') }}" class="block py-2 px-4 rounded hover:bg-gray-700"><i class="fas fa-tag mr-2"></i>Status</a></li>
-
+                <li><a href="{{ route('dunit.index') }}" class="block py-2 px-4 rounded hover:bg-gray-700"><i class="fas fa-tag mr-2"></i>D Unit</a></li>
+@if (Route::has('supplier.index'))
+<li><a href="{{ route('supplier.index') }}" class="block py-2 px-4 rounded hover:bg-gray-700"><i class="fas fa-truck-field mr-2"></i>Suppliers</a></li>
+@endif
 
 
             </ul>
@@ -57,8 +60,9 @@
               <i id="arrow1" class="fas fa-chevron-down"></i>
             </button>
             <ul id="dropdown-menu1" class="hidden mt-2 pl-4">
-              <li><a href="{{ route('order.all') }}" class="block py-2 px-4 rounded hover:bg-gray-700"><i class="fas fa-tags mr-2"></i>All Orders</a></li>
+              {{--<li><a href="{{ route('order.all') }}" class="block py-2 px-4 rounded hover:bg-gray-700"><i class="fas fa-tags mr-2"></i>All Orders</a></li>--}}
               <li><a href="{{ route('order.new') }}" class="block py-2 px-4 rounded hover:bg-gray-700"><i class="fas fa-users mr-2"></i>New Order</a></li>
+              <li><a href="{{ route('order.index') }}" class="block py-2 px-4 rounded hover:bg-gray-700"><i class="fas fa-users mr-2"></i>Orders</a></li>
 
 
 

@@ -49,11 +49,11 @@
         </div>
         <div class="bg-yellow-100 border border-yellow-200 p-4 rounded-lg shadow">
             <h3 class="text-sm font-semibold text-yellow-800">Total Sale (Buyer)</h3>
-            <p class="text-2xl font-bold text-yellow-900">₹{{ number_format($totalSale, 2) }}</p>
+            <p class="text-2xl font-bold text-yellow-900">{{ number_format($totalSale, 2) }}</p>
         </div>
         <div class="bg-red-100 border border-red-200 p-4 rounded-lg shadow">
             <h3 class="text-sm font-semibold text-red-800">Total Purchase (Supplier)</h3>
-            <p class="text-2xl font-bold text-red-900">₹{{ number_format($totalPurchase, 2) }}</p>
+            <p class="text-2xl font-bold text-red-900">{{ number_format($totalPurchase, 2) }}</p>
         </div>
     </div>
 </div>

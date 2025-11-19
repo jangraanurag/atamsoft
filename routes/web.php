@@ -4,6 +4,7 @@ use App\Http\Controllers\loginController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\brandcontroller;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\MonitoringController;
 use App\Http\Controllers\ImportController;
 use App\Http\Controllers\SupplierController; // <-- Added Supplier
 use Illuminate\Support\Facades\Route;
@@ -11,6 +12,9 @@ use Illuminate\Support\Facades\Route;
 Route::get('/',[loginController::class, 'login'])->name('login');
 Route::post('/authenticate', [loginController::class, 'authenticate'])->name('authenticate');
 Route::get('/logout', [loginController::class, 'logout'])->name('logout');
+
+    // Monitoring page
+    Route::get('/monitoring', [MonitoringController::class, 'index'])->name('monitoring.index');
 
 //Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', function () {
@@ -145,6 +149,10 @@ Route::get('/logout', [loginController::class, 'logout'])->name('logout');
         
         // Inline-edit form submission
         Route::post('/update-status/', [OrderController::class, 'updateStatus'])->name('order.updateStatus');
+        Route::post('/bulk-edit', [OrderController::class, 'showBulkEditForm'])->name('order.bulkEditForm');
+        // This route *saves* the changes from the bulk edit page
+        Route::post('/bulk-update', [OrderController::class, 'bulkUpdate'])->name('order.bulkUpdate');
+        Route::post('/bulk-po', [OrderController::class, 'bulkPo'])->name('order.bulkPo');
     });
 
     // DataTables AJAX route
@@ -154,6 +162,7 @@ Route::get('/logout', [loginController::class, 'logout'])->name('logout');
     Route::prefix('reports')->group(function () {
         Route::get('/buyer-report', [ReportController::class, 'buyerReport'])->name('reports.buyer');
         Route::post('/generate-buyer-report', [ReportController::class, 'generateBuyerReport'])->name('reports.generateBuyerReport');
+        Route::post('/generate-supplier-report', [ReportController::class, 'generateSupplierReport'])->name('reports.generateSupplierReport');
     });
 
     Route::get('/info', function() { phpinfo(); });

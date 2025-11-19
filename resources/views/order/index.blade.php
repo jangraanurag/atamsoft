@@ -2,46 +2,190 @@
 @section('title', 'Manage All Orders')
 
 @section('header')
-<link rel="stylesheet" href="https://cdn.datatables.net/2.0.8/css/dataTables.tailwindcss.css">
+<link rel="stylesheet" href="https://cdn.datatables.net/2.3.5/css/dataTables.tailwindcss.css">
 <style>
-    /* Add a visual cue for the active filter button */
-    .filter-button.active {
-        background-color: #4338ca; /* indigo-700 */
-        color: white;
-    }
-    /* Style for the active button to show it's disabled */
-    .filter-button.active:disabled {
-        opacity: 0.75;
-        cursor: not-allowed;
-    }
-    /* Style for calculated total fields */
-    .total-field {
-        background-color: #f3f4f6; /* gray-100 */
-        font-weight: 500;
-    }
-    /* Simple transition for accordion chevron */
-    .chevron-icon {
-        transition: transform 0.2s ease;
-    }
-    /* Fix for DataTables scrollbar layout */
-    div.dataTables_wrapper div.dataTables_scrollBody {
-        overflow-x: auto;
-    }
-    
+  .table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    position: relative;
+    border: 1px solid #ccc;
+}
+
+.order-table {
+    border-collapse: collapse;
+    width: auto; /* Changed from 100% to auto */
+    min-width: 100%;
+    table-layout: auto; /* Allow natural column sizing */
+}
+
+.order-table th,
+.order-table td {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    background: #f8fbff;
+    white-space: nowrap;
+}
+
+/* Sticky header */
+.order-table thead th {
+    position: sticky;
+    top: 0;
+    background: #0168fa !important;
+    color: #fff !important;
+    z-index: 10;
+    font-size: 16px;
+    font-weight: 700;
+}
+
+/* Sticky first column (Order No + Checkbox) */
+.order-table th:nth-child(1),
+.order-table td:nth-child(1) {
+    position: sticky;
+    left: 0;
+    z-index: 8;
+    background: #f8fbff;
+    min-width: 60px;
+    width: 60px;
+}
+
+/* Sticky second column (Image/CDR) */
+.order-table th:nth-child(2),
+.order-table td:nth-child(2) {
+    position: sticky;
+    left: 60px; /* Width of first column */
+    z-index: 8;
+    background: #f8fbff;
+    min-width: 90px;
+    width: 90px;
+}
+
+/* Sticky last column (Actions) */
+.order-table th:last-child,
+.order-table td:last-child {
+    position: sticky;
+    right: 0;
+    z-index: 8;
+    background: #f8fbff;
+    min-width: 100px;
+    width: 100px;
+}
+
+/* Ensure sticky columns have proper borders and shadows */
+.order-table th:nth-child(1),
+.order-table td:nth-child(1),
+.order-table th:nth-child(2),
+.order-table td:nth-child(2),
+.order-table th:last-child,
+.order-table td:last-child {
+    border-right: 2px solid #0168fa;
+    box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+}
+
+.order-table th:last-child,
+.order-table td:last-child {
+    border-left: 2px solid #0168fa;
+    border-right: 1px solid #ddd;
+    box-shadow: -2px 0 5px rgba(0,0,0,0.1);
+}
+
+/* Ensure header sticky columns have higher z-index */
+.order-table thead th:nth-child(1),
+.order-table thead th:nth-child(2),
+.order-table thead th:last-child {
+    z-index: 11;
+}
+
+/* Row styling */
+#orders-table tbody tr:nth-child(odd) {
+    background-color: #e2eeff !important;
+}
+
+#orders-table tbody tr:nth-child(odd) td {
+    background-color: #e2eeff !important;
+}
+
+#orders-table tbody tr:nth-child(even) td {
+    background-color: #f8fbff !important;
+}
+
+/* Ensure sticky columns maintain row background colors */
+#orders-table tbody tr:nth-child(odd) td:nth-child(1),
+#orders-table tbody tr:nth-child(odd) td:nth-child(2),
+#orders-table tbody tr:nth-child(odd) td:last-child {
+    background-color: #e2eeff !important;
+}
+
+#orders-table tbody tr:nth-child(even) td:nth-child(1),
+#orders-table tbody tr:nth-child(even) td:nth-child(2),
+#orders-table tbody tr:nth-child(even) td:last-child {
+    background-color: #f8fbff !important;
+}
+
+/* DataTables specific styling */
+#orders-table tbody td {
+    border: 1px solid black;
+    padding: 0;
+    vertical-align: top;
+}
+
+#orders-table tbody td > div {
+    padding: 10px 12px;
+}
+
+/* Specific column classes - only for sticky columns */
+.col-checkbox {
+    width: 80px !important;
+    min-width: 60px !important;
+    max-width: 80px !important;
+}
+
+.col-image {
+    width: 90px !important;
+    min-width: 90px !important;
+    max-width: 90px !important;
+}
+
+.col-actions {
+    width: 100px !important;
+    min-width: 100px !important;
+    max-width: 100px !important;
+}
+
+/* Content columns - allow natural sizing */
+.order-table td:not(.col-checkbox):not(.col-image):not(.col-actions) {
+    white-space: normal;
+    word-break: break-word;
+    min-width: 120px; /* Minimum width for readability */
+    width: auto; /* Allow natural growth */
+}
+
+/* Remove fixed widths from content columns */
+.order-table th:not(.col-checkbox):not(.col-image):not(.col-actions),
+.order-table td:not(.col-checkbox):not(.col-image):not(.col-actions) {
+    max-width: none; /* Remove max-width constraints */
+}
+
+table, table th, table td {
+    text-transform: uppercase !important;
+}
+
+/* Ensure DataTables doesn't override our widths */
+#orders-table {
+    width: auto !important;
+}
 </style>
 @endsection
 
 @section('content')
-<h1 class="text-2xl font-bold mb-4">Order Management (All Orders)</h1>
 
-@if(session('message'))
-    <div class="mb-4 p-4 bg-green-100 text-green-800 border border-green-300 rounded">
-        {{ session('message') }}
+@if(session('success'))
+    <div class="mb-4 p-4 rounded-md bg-green-100 text-green-700">
+        {!! session('success') !!}
     </div>
 @endif
-
 @if ($errors->any())
-    <div class="mb-4 p-4 bg-red-100 text-red-800 border border-red-300 rounded">
+    <div class="mb-4 p-4 rounded-md bg-red-100 text-red-700">
         <strong>Whoops! Something went wrong.</strong>
         <ul class="mt-2 list-disc list-inside">
             @foreach ($errors->all() as $error)
@@ -51,610 +195,393 @@
     </div>
 @endif
 
-{{-- ========================================================= --}}
-{{-- ============== ACCORDION SUMMARY SECTION ================ --}}
-{{-- ========================================================= --}}
-<div class="mb-6 space-y-2">
-    <!-- Buyer Summary Accordion -->
-    <div class="bg-white rounded-xl shadow-lg overflow-hidden">
-        <button class="accordion-toggle flex justify-between items-center w-full p-6" aria-expanded="false">
-            <h2 class="text-xl font-semibold text-gray-700">Buyer-wise Summary</h2>
-            <i class="fa-solid fa-chevron-down chevron-icon"></i>
-        </button>
-        <div class="accordion-content hidden">
-            <div class="overflow-x-auto">
-                <table class="min-w-full">
-                    <thead class="bg-gray-100">
-                        <tr>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Buyers</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Numbers of Orders</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Total Amount</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Edit Orders</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-200">
-                        @forelse($buyerReports as $report)
-                        <tr class="hover:bg-gray-50 transition-colors">
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ $report['buyer_name'] }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">{{ $report['number_of_orders'] }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">₹{{ number_format($report['total_amount'], 2) }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">
-                                <a href="#" class="text-blue-600 hover:text-blue-800">
-                                    Edit
-                                </a>
-                            </td>
-                        </tr>
-                        @empty
-                        <tr>
-                            <td colspan="4" class="text-center py-10 text-gray-400">
-                                <p>No buyer data found for this filter.</p>
-                            </td>
-                        </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-
-    <!-- Supplier Summary Accordion -->
-    <div class="bg-white rounded-xl shadow-lg overflow-hidden">
-        <button class="accordion-toggle flex justify-between items-center w-full p-6" aria-expanded="false">
-            <h2 class="text-xl font-semibold text-gray-700">Supplier-wise Summary</h2>
-            <i class="fa-solid fa-chevron-down chevron-icon"></i>
-        </button>
-        <div class="accordion-content hidden">
-            <div class="overflow-x-auto">
-                <table class="min-w-full">
-                    <thead class="bg-gray-100">
-                        <tr>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Suppliers</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Numbers of Orders</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Total Amount</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Edit Orders</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-200">
-                        @forelse($supplierReports as $report)
-                        <tr class="hover:bg-gray-50 transition-colors">
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ $report['supplier_name'] }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">{{ $report['number_of_orders'] }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">₹{{ number_format($report['total_amount'], 2) }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">
-                                <a href="#" class="text-blue-600 hover:text-blue-800">
-                                    Edit
-                                </a>
-                            </td>
-                        </tr>
-                        @empty
-                        <tr>
-                            <td colspan="4" class="text-center py-10 text-gray-400">
-                                <p>No supplier data found for this filter.</p>
-                            </td>
-                        </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-</div>
-
-{{-- ========================================================= --}}
-{{-- ============== 4-BOX SUMMARY SECTION ================ --}}
-{{-- ========================================================= --}}
-@php
-    // These 'orders' are passed from the controller for the summary boxes
-    $totalOrderedQty = $orders->sum('order_qty');
-    $totalManufacturedQty = $orders->sum('order_manufacturedqty');
-    $totalSale = $orders->sum('buyer_total');
-    $totalPurchase = $orders->sum('supplier_total');
-@endphp
-
+<!-- Summary Section (Header) -->
 <div class="mb-6">
-    <h2 class="text-xl font-semibold mb-3">Overall Summary (Filtered)</h2>
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div class="bg-blue-100 border border-blue-200 p-4 rounded-lg shadow">
-            <h3 class="text-sm font-semibold text-blue-800">Total Ordered Qty</h3>
-            <p class="text-2xl font-bold text-blue-900">{{ number_format($totalOrderedQty) }}</p>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="bg-white border border-gray-200 p-4 rounded-lg shadow text-center">
+            <h3 class="text-xs font-semibold text-gray-500 uppercase">Total Orders</h3>
+            <p class="text-xl font-bold text-gray-900">{{ number_format($orders->count()) }}</p>
         </div>
-        <div class="bg-green-100 border border-green-200 p-4 rounded-lg shadow">
-            <h3 class="text-sm font-semibold text-green-800">Total Manufactured Qty</h3>
-            <p class="text-2xl font-bold text-green-900">{{ number_format($totalManufacturedQty) }}</p>
+        <div class="bg-white border border-gray-200 p-4 rounded-lg shadow text-center">
+            <h3 class="text-xs font-semibold text-gray-500 uppercase">Total Qty</h3>
+            <p class="text-xl font-bold text-gray-900">{{ number_format($orders->sum('order_qty')) }}</p>
         </div>
-        <div class="bg-yellow-100 border border-yellow-200 p-4 rounded-lg shadow">
-            <h3 class="text-sm font-semibold text-yellow-800">Total Sale (Buyer)</h3>
-            <p class="text-2xl font-bold text-yellow-900">₹{{ number_format($totalSale, 2) }}</p>
+        <div class="bg-white border border-gray-200 p-4 rounded-lg shadow text-center">
+            <h3 class="text-xs font-semibold text-gray-500 uppercase">Buyer Amount</h3>
+            <p class="text-xl font-bold text-blue-600">{{ number_format($orders->sum('buyer_total'), 2) }}</p>
         </div>
-        <div class="bg-red-100 border border-red-200 p-4 rounded-lg shadow">
-            <h3 class="text-sm font-semibold text-red-800">Total Purchase (Supplier)</h3>
-            <p class="text-2xl font-bold text-red-900">₹{{ number_format($totalPurchase, 2) }}</p>
+        <div class="bg-white border border-gray-200 p-4 rounded-lg shadow text-center">
+            <h3 class="text-xs font-semibold text-gray-500 uppercase">Supplier Amount</h3>
+            <p class="text-xl font-bold text-green-600">{{ number_format($orders->sum('supplier_total'), 2) }}</p>
         </div>
     </div>
 </div>
 
-{{-- ========================================================= --}}
-{{-- =============== IN-LINE EDITING FORM ================ --}}
-{{-- ========================================================= --}}
-<div class="bg-white shadow rounded p-4">
-    
-    {{-- This form is for the "Generate Buyer Report" button --}}
-    <form action="{{ route('reports.generateBuyerReport') }}" method="POST" id="report-form">
-        @csrf
-        <div id="selected-ids-container"></div>
-    </form>
+<!-- Forms for actions -->
+<form action="{{ route('reports.generateBuyerReport') }}" method="POST" id="report-form">@csrf <div id="report-ids"></div></form>
+<form action="{{ route('order.bulkEditForm') }}" method="POST" id="bulk-edit-form">@csrf <div id="bulk-edit-ids-container"></div></form>
+<form action="{{ route('order.bulkPo') }}" method="POST" id="bulk-po-form" target="_blank">@csrf <div id="bulk-po-ids-container"></div></form>
+<form action="{{ route('reports.generateSupplierReport') }}" method="POST" id="supplier-report-form">@csrf <div id="supplier-report-ids"></div></form>
+<form action="" method="POST" id="delete-form">@csrf @method('DELETE') <div id="delete-ids"></div></form>
 
-    <div class="border-b pb-4 mb-4">
-        <h2 class="text-lg font-semibold mb-4">In-line Order Editing</h2>
+<!-- Main Layout -->
+<div class="flex flex-col md:flex-row gap-4 items-start">
+    
+    <!-- Left Sidebar: Status Filters (Sticky) -->
+    <div class="w-full md:w-32 flex-shrink-0 md:sticky md:top-24 flex flex-row md:flex-col gap-2 overflow-x-auto md:overflow-visible pb-2 md:pb-0">
+        <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1 hidden md:block">Status</h3>
         
-        <!-- Filter Buttons (Top Row) -->
-        <div class="flex space-x-1 rounded-lg bg-gray-200 p-1 mb-4 w-full md:w-auto">
-            <button data-status="all" class="filter-button px-3 py-1 text-sm font-medium rounded-md text-gray-700 hover:bg-white flex-1 md:flex-none">All</button>
-            <button data-status="pending" class="filter-button px-3 py-1 text-sm font-medium rounded-md text-gray-700 hover:bg-white flex-1 md:flex-none">Pending</button>
-            <button data-status="ready" class="filter-button px-3 py-1 text-sm font-medium rounded-md text-gray-700 hover:bg-white flex-1 md:flex-none">Ready</button>
-            <button data-status="shipped" class="filter-button px-3 py-1 text-sm font-medium rounded-md text-gray-700 hover:bg-white flex-1 md:flex-none">Shipped</button>
-            <button data-status="delivered" class="filter-button px-3 py-1 text-sm font-medium rounded-md text-gray-700 hover:bg-white flex-1 md:flex-none">Delivered</button>
-            <button data-status="cancelled" class="filter-button px-3 py-1 text-sm font-medium rounded-md text-gray-700 hover:bg-white flex-1 md:flex-none">Cancelled</button>
-        </div>
-        
-        <!-- Action Buttons & Search (Bottom Row) -->
-        <div class="flex flex-col md:flex-row justify-between items-center">
-            <!-- Action Buttons (Left) -->
-            <div class="flex space-x-2 mb-4 md:mb-0">
-                <button type="submit" form="update-form" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-                    <i class="fa-solid fa-save mr-1"></i> Update Selected
-                </button>
-                <button type="submit" form="report-form"
-                        class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
-                    <i class="fas fa-file-invoice mr-2"></i> Generate Buyer Report
-                </button>
-            </div>
-            
-           
-            
-        </div>
+        <a href="{{ url('order') }}"
+           class="px-3 py-2 rounded text-sm text-center whitespace-nowrap {{ request('status') == '' ? 'bg-blue-600 text-white font-bold shadow' : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200' }}">
+           All
+        </a>
+
+        <a href="{{ url('order') }}?status=Pending"
+           class="px-3 py-2 rounded text-sm text-center whitespace-nowrap {{ request('status') == 'Pending' ? 'bg-blue-600 text-white font-bold shadow' : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200' }}">
+           Pending
+        </a>
+
+        <a href="{{ url('order') }}?status=In Progress"
+           class="px-3 py-2 rounded text-sm text-center whitespace-nowrap {{ request('status') == 'In Progress' ? 'bg-blue-600 text-white font-bold shadow' : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200' }}">
+           In Progress
+        </a>
+
+        <a href="{{ url('order') }}?status=Completed"
+           class="px-3 py-2 rounded text-sm text-center whitespace-nowrap {{ request('status') == 'Completed' ? 'bg-blue-600 text-white font-bold shadow' : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200' }}">
+           Completed
+        </a>
     </div>
-        
-    {{-- This form is for the "Update All Orders" button --}}
-    <form action="{{ route('order.updateStatus') }}" method="POST" id="update-form">
-        @csrf
-        <table id="orders-table" class="min-w-full text-sm text-left border border-gray-200" style="width:100%">
-            <thead class="bg-gray-100">
+
+    <!-- Center: Table -->
+    <div class="flex-grow min-w-0 w-full bg-white shadow rounded-lg overflow-hidden table-wrapper">
+        {{-- DataTables search box will be rendered here by default --}}
+    
+        <table id="orders-table" class="min-w-full text-sm order-table" style="width:100%">
+            <thead>
                 <tr>
-                    <th class="p-2 border w-4"><input type="checkbox" id="select-all"></th>
-                    <th class="p-2 border">#</th>
-                    <th class="p-2 border">Image</th> 
-                    <th class="p-2 border">Order No</th>
-                    <th class="p-2 border">Product</th>
-                    <th class="p-2 border">Buyer</th>
-                    <th class="p-2 border">Supplier</th>
-                    <th class="p-2 border">Order Qty</th>
-                    <th class="p-2 border">Status</th>
-                    <th class="p-2 border">Manuf. Qty</th>
-                    <th class="p-2 border">Order Date</th>
-                    <th class="p-2 border">Delivery Date</th>
-                    <th class="p-2 border">Weight</th>
-                    <th class="p-2 border">Buyer Price</th>
-                    <th class="p-2 border">Buyer Mould</th>
-                    <th class="p-2 border">Supplier Price</th>
-                    <th class="p-2 border">Supplier Mould</th>
-                    <th class="p-2 border">Buyer Total</th>
-                    <th class="p-2 border">Supplier Total</th>
-                    <th class="p-2 border">Remark</th>
-                    <th class="p-2 border">Actions</th>
+                    <th class="p-2 sticky-col col-1">Ord No</th>
+                    <th class="p-2">Image/CDR</th>
+                    <th class="p-2">Brand</th>
+                    <th class="p-2">Product</th>
+                    <th class="p-2">Qty/Unit</th>
+                    <th class="p-2">Supplier</th>
+                    <th class="p-2">Supp. Amount</th>
+                    <th class="p-2">Buyer</th>
+                    <th class="p-2">Buyer Amount</th>
+                    <th class="p-2">Dims/Weight</th>
+                    <th class="p-2">Dates</th>
+                    
+                    <th class="p-2">Shipping</th>
+                    <!--<th class="p-2">Remarks</th>
+                    <th class="p-2">Color Ref.</th>-->
+                    <th class="p-2">Actions</th>
                 </tr>
             </thead>
-            
-            {{-- Body is empty - DataTables will fill this --}}
             <tbody></tbody>
         </table>
-    </form>
-</div>
+    </div>
 
+    <!-- Right Sidebar: Actions (Sticky) -->
+    <div class="w-full md:w-40 flex-shrink-0 md:sticky md:top-24 flex flex-row md:flex-col gap-2 overflow-x-auto md:overflow-visible pb-2 md:pb-0">
+        <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1 hidden md:block">Actions</h3>
+        
+        <a href="{{ route('order.new') }}" class="w-full bg-indigo-600 text-white px-3 py-2 rounded text-sm text-center hover:bg-indigo-700 shadow flex items-center justify-center gap-2 whitespace-nowrap">
+            <i class="fa-solid fa-plus"></i> Create Order
+        </a>
+        
+        <button type="submit" form="bulk-edit-form" class="w-full bg-white text-gray-700 border border-gray-300 px-3 py-2 rounded text-sm text-center hover:bg-gray-50 shadow-sm flex items-center justify-center gap-2 whitespace-nowrap">
+            <i class="fa-solid fa-pencil"></i> Edit Selected
+        </button>
+        
+        <button type="submit" form="bulk-po-form" class="w-full bg-white text-gray-700 border border-gray-300 px-3 py-2 rounded text-sm text-center hover:bg-gray-50 shadow-sm flex items-center justify-center gap-2 whitespace-nowrap">
+            <i class="fa-solid fa-print"></i> Bulk PO
+        </button>
+        
+        <button type="submit" form="report-form" class="w-full bg-white text-gray-700 border border-gray-300 px-3 py-2 rounded text-sm text-center hover:bg-gray-50 shadow-sm flex items-center justify-center gap-2 whitespace-nowrap">
+            <i class="fa-solid fa-file-invoice"></i> Buyer Report
+        </button>
 
-{{-- ========================================================= --}}
-{{-- =============== *** EDIT MODAL *** ================ --}}
-{{-- ========================================================= --}}
-<div id="edit-order-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50" style="display: none;">
-    <div class="relative top-10 mx-auto max-w-4xl w-full">
-        <div class="bg-white rounded-lg shadow-xl">
-            {{-- Content will be loaded here by AJAX --}}
-            <div id="edit-modal-content">
-                <div class="p-6 text-center">
-                    <i class="fas fa-spinner fa-spin text-4xl text-blue-600"></i>
-                    <p class="mt-2 text-gray-600">Loading Order Details...</p>
-                </div>
-            </div>
-        </div>
+        <button type="submit" form="supplier-report-form" class="w-full bg-white text-gray-700 border border-gray-300 px-3 py-2 rounded text-sm text-center hover:bg-gray-50 shadow-sm flex items-center justify-center gap-2 whitespace-nowrap">
+            <i class="fa-solid fa-file-invoice"></i> Supplier Report
+        </button>
+        
+        <button id="delete-selected-button" class="w-full bg-red-50 text-red-600 border border-red-200 px-3 py-2 rounded text-sm text-center hover:bg-red-100 shadow-sm flex items-center justify-center gap-2 whitespace-nowrap">
+            <i class="fa-solid fa-trash"></i> Delete Selected
+        </button>
     </div>
 </div>
-{{-- ========================================================= --}}
-{{-- ============= END OF MODAL ============= --}}
-{{-- ========================================================= --}}
 
 @endsection
 
 @section('footer')
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-<script src="https://cdn.datatables.net/2.0.8/js/dataTables.js"></script>
-<script src="https://cdn.datatables.net/2.0.8/js/dataTables.tailwindcss.js"></script>
+<script src="https://cdn.datatables.net/2.3.5/js/dataTables.js"></script>
+<script src="https://cdn.datatables.net/2.3.5/js/dataTables.tailwindcss.js"></script>
 
 <script>
 // Pass PHP variables to JavaScript
 const allStatuses = @json($statuses);
 const allSuppliers = @json($suppliers);
-const currentStatusFilter = "{{ $filterStatus ?? 'all' }}"; // Get status from URL
+const currentStatusFilter = "{{ $filterStatus ?? '' }}";
 
 $(document).ready(function() {
-    var selectedOrderIds = [];
+    
+    // Set the filter dropdown to the value from the URL
+    if(currentStatusFilter) {
+        let status = allStatuses.find(s => s.status_name.toLowerCase() === currentStatusFilter.toLowerCase());
+        if(status) {
+            $('#filter-status').val(status.id);
+        }
+    }
 
     // Initialize DataTable
-    var table = $('#orders-table').DataTable({
-        processing: true,
-        serverSide: true,
-        
-        scrollX: false, 
-        
-        // This removes the "double header" and controls
-       dom: '<"flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4"lf>rt<"flex flex-col sm:flex-row justify-between items-start sm:items-center mt-4"ip>',
-        
-        ajax: {
-            url: "{{ route('order.data') }}", 
-            type: "GET",
-            data: function(d) {
-                // Add the status filter to the AJAX request
-                d.status = $('.filter-button.active').data('status') || currentStatusFilter;
+   var table = $('#orders-table').DataTable({
+    processing: true,
+    serverSide: true,
+    scrollX: true,
+    scrollY:'70vh',
+    autoWidth: true,
+    dom: '<"flex justify-between items-center mb-4"lf>rt<"flex justify-between items-center mt-4"ip>',
+    
+    ajax: {
+        url: "{{ route('order.data') }}", 
+        type: "GET",
+        data: function(d) {
+            d.status = "{{ request('status') }}";
+        }
+    },
+    "order": [[ 0, "desc" ]], // Sort by Order No (column 0)
+    
+    // Column definitions for sticky columns
+    // Updated columnDefs in your DataTable initialization
+columnDefs: [
+    { 
+        targets: 0, // First column (Order No + Checkbox)
+        width: "80px",
+        className: 'col-checkbox'
+    },
+    { 
+        targets: 1, // Second column (Image/CDR)
+        width: "120px", 
+        className: 'col-image'
+    },
+    { 
+        targets: -1, // Last column (Actions)
+        width: "100px",
+        className: 'col-actions'
+    },
+    // Remove the '_all' target that was setting width: "auto" for all columns
+    // This allows content columns to grow naturally
+],
+    
+    columns: [
+        // 0. Checkbox + Order No (STICKY LEFT)
+        { 
+            data: "id", 
+            orderable: true, 
+            searchable: true,
+            render: function(data, type, row) {
+                return `<div><input type="checkbox" class="order-checkbox" value="${data}">
+                        <p class="text-sm ml-2">${data}</p></div>`;
             }
         },
-        "order": [[ 3, "desc" ]], 
-        columns: [
-            // 0. Checkbox
-            { data: "id", orderable: false, searchable: false,
-              render: function(data, type, row) {
-                  return `<input type="checkbox" name="order_ids[]" value="${data}" class="order-checkbox">`;
-              }
-            },
-            // 1. Row number
-            { data: null, orderable: false, searchable: false, 
-              render: function (data, type, row, meta) {
-                  return meta.row + meta.settings._iDisplayStart + 1;
-              }
-            },
-            // 2. Image
-            { data: "order_image", orderable: false, searchable: false,
-              render: function(data, type, row) {
-                  if (!data) return '';
-                  let imgSrc = `{{ asset('storage') }}/${data}`; 
-                  return `<img src="${imgSrc}" alt="Img" class="w-12 h-12 object-cover rounded border">`;
-              }
-            },
-            // 3. Order No
-            { data: "id" },
-            // 4. Product
-            { data: "product_name" },
-            // 5. Buyer
-            { data: "buyer_name" },
-            // 6. Supplier (Dropdown)
-            { data: "supplier_name",
-              render: function(data, type, row) {
-                  let options = '<option value="">-- No Supplier --</option>';
-                  allSuppliers.forEach(function(supplier) {
-                      let selected = (supplier.id == row.supplier_id) ? 'selected' : '';
-                      options += `<option value="${supplier.id}" ${selected}>${supplier.name}</option>`;
-                  });
-                  return `
-                      <select name="updates[${row.id}][supplier_id]" class="w-full border-gray-300 rounded text-xs p-1" form="update-form">
-                          ${options}
-                      </select>
-                  `;
-              }
-            },
-            // 7. Order Qty
-            { data: "order_qty" },
-            // 8. Status (Dropdown)
-            { data: "status_name",
-              render: function(data, type, row) {
-                  let options = '';
-                  allStatuses.forEach(function(status) {
-                      let selected = (status.id == row.order_status) ? 'selected' : '';
-                      options += `<option value="${status.id}" ${selected}>${status.status_name}</option>`;
-                  });
-                  return `
-                      <select name="updates[${row.id}][order_status]" class="w-full border-gray-300 rounded text-xs p-1" form="update-form">
-                          ${options}
-                      </select>
-                  `;
-              }
-            },
-            // 9. Manuf. Qty (Input)
-            { data: "order_manufacturedqty",
-              render: function(data, type, row) {
-                  return `<input type="number" name="updates[${row.id}][order_manufacturedqty]" value="${data || ''}" class="w-full border-gray-300 rounded text-xs p-1" form="update-form">`;
-              }
-            },
-            // 10. Order Date
-            { data: "order_date",
-              render: function(data, type, row) {
-                  let dateVal = data ? data.split(' ')[0] : ''; // Get Y-m-d part
-                  return `<input type="date" name="updates[${row.id}][order_date]" value="${dateVal}" class="w-full border-gray-300 rounded text-xs p-1" form="update-form">`;
-              }
-            },
-            // 11. Delivery Date (Input)
-            { data: "order_deliverydate",
-              render: function(data, type, row) {
-                  let dateVal = data ? data.split(' ')[0] : ''; // Get Y-m-d part
-                  return `<input type="date" name="updates[${row.id}][order_deliverydate]" value="${dateVal}" class="w-full border-gray-300 rounded text-xs p-1" form="update-form">`;
-              }
-            },
-            // 12. Weight (Input)
-            { data: "order_weight",
-              render: function(data, type, row) {
-                  return `<input type="number" step="any" name="updates[${row.id}][order_weight]" value="${data || ''}" class="w-20 border-gray-300 rounded text-xs p-1" form="update-form">`;
-              }
-            },
-            
-            // 13. Buyer Price (Input)
-            { data: "order_price",
-              render: function(data, type, row) {
-                  return `<input type="number" step="any" name="updates[${row.id}][order_price]" value="${data || ''}" class="w-20 border-gray-300 rounded text-xs p-1 calc-buyer" data-id="${row.id}" form="update-form">`;
-              }
-            },
-            // 14. Buyer Mould (Input)
-            { data: "order_mouldprice",
-              render: function(data, type, row) {
-                  return `<input type="number" step="any" name="updates[${row.id}][order_mouldprice]" value="${data || ''}" class="w-20 border-gray-300 rounded text-xs p-1 calc-buyer" data-id="${row.id}" form="update-form">`;
-              }
-            },
-            // 15. Supplier Price (Input)
-            { data: "supplier_price",
-              render: function(data, type, row) {
-                  return `<input type="number" step="any" name="updates[${row.id}][supplier_price]" value="${data || ''}" class="w-20 border-gray-300 rounded text-xs p-1 calc-supplier" data-id="${row.id}" form="update-form">`;
-              }
-            },
-            // 16. Supplier Mould (Input)
-            { data: "supplier_mould_price",
-              render: function(data, type, row) {
-                  return `<input type="number" step="any" name="updates[${row.id}][supplier_mould_price]" value="${data || ''}" class="w-20 border-gray-300 rounded text-xs p-1 calc-supplier" data-id="${row.id}" form="update-form">`;
-              }
-            },
-            
-            // 17. Buyer Total (Calculated)
-            { data: "buyer_total",
-              render: function(data, type, row) {
-                  return `<input id="buyer_total_${row.id}" type="number" step="any" name="updates[${row.id}][buyer_total]" value="${data || 0}" class="w-20 border-gray-300 rounded text-xs p-1 total-field" form="update-form" readonly>`;
-              }
-            },
-            
-            // 18. Supplier Total (Calculated)
-            { data: "supplier_total",
-              render: function(data, type, row) {
-                  return `<input id="supplier_total_${row.id}" type="number" step="any" name="updates[${row.id}][supplier_total]" value="${data || 0}" class="w-20 border-gray-300 rounded text-xs p-1 total-field" form="update-form" readonly>`;
-              }
-            },
-
-            // 19. Remark (Input)
-            { data: "order_remark",
-              render: function(data, type, row) {
-                  return `<textarea name="updates[${row.id}][order_remark]" class="w-full border-gray-300 rounded text-xs p-1" rows="1" form="update-form">${data || ''}</textarea>`;
-              }
-            },
-            // 20. Actions
-            { data: "id", orderable: false, searchable: false, render: function(data, type, row) {
+        // 1. Image/CDR (STICKY LEFT)
+        { 
+            data: "order_image", 
+            orderable: false, 
+            searchable: false,
+            render: function(data, type, row) {
+                let imgSrc = data ? `{{ asset('storage/app/public') }}/${data}` : 'https://placehold.co/90x90/e2e8f0/adb5bd?text=No+Img';
+                let cdrLink = row.order_cdr ? `<a href="{{ asset('storage/app/public') }}/${row.order_cdr}" class="text-blue-600 block text-xs hover:underline" target="_blank">CDR File</a>` : '';
+                return `
+                    <img src="${imgSrc}" alt="Img" style="width:90px;" class="object-cover rounded border">
+                    ${cdrLink}
+                `;
+            }
+        },
+        // 2. Brand (SCROLLABLE)
+        { 
+            data: "brand_name", 
+            className: 'text-sm', 
+            render: data => `<div>${data || ''}</div>` 
+        },
+        // 3. Product (SCROLLABLE)
+        { 
+            data: "product_name", 
+            render: data => `<div>${data || ''}</div>` 
+        },
+        // 4. Qty/Unit (SCROLLABLE)
+        { 
+            data: "order_qty", 
+            render: (data, type, row) => `<div>${data || ''} ${row.unit_shorthand || ''}</div>` 
+        },
+        { 
+            data: "supplier_name", 
+            render: data => `<div>${data || ''}</div>` 
+        },
+        // 8. Supp. Amount (SCROLLABLE)
+        { 
+            data: "supplier_total", 
+            render: (data, type, row) => `
+                <div>
+                    <div>${row.supplier_price || 0} | ${row.supplier_mould_price || 0}</div>
+                    <div class="text-sm">${parseFloat(data || 0).toFixed(2)}</div>
+                </div>`
+        },
+        // 9. Buyer (SCROLLABLE)
+        { 
+            data: "buyer_name", 
+            render: data => `<div>${data || ''}</div>` 
+        },
+        // 10. Buyer Amount (SCROLLABLE)
+        { 
+            data: "buyer_total", 
+            render: (data, type, row) => `
+                <div>
+                    <div>${row.order_price || 0} | ${row.order_mouldprice || 0}</div>
+                    <div class="text-sm">${parseFloat(data || 0).toFixed(2)}</div>
+                </div>`
+        },
+        // 5. Dims/Weight (SCROLLABLE)
+        { 
+            data: "order_length", 
+            render: (data, type, row) => `
+                <div>
+                    <div>${row.order_length || ''} ${row.dunit_shorthand || ''} * ${row.order_width || ''} ${row.dunit_shorthand || ''}</div>
+                    <div>${row.order_weight || ''} grams</div>
+                </div>` 
+        },
+        // 6. Dates (SCROLLABLE)
+        { 
+            data: "order_date", 
+            render: (data, type, row) => `
+                <div>
+                    <div>O: <span>${row.order_date || ''}</span></div>
+                    <div>D: <span >${row.order_deliverydate || ''}</span></div>
+                </div>`
+        },
+        // 7. Supplier (SCROLLABLE)
+        
+        // 11. Shipping (SCROLLABLE)
+        { 
+            data: "shipper_name", 
+            render: (data, type, row) => `
+                <div>
+                    <div>${data || ''}</div>
+                    <div>${row.order_shipmentno || ''}</div>
+                </div>`
+        },
+        // 12. Actions (STICKY RIGHT)
+        { 
+            data: "id", 
+            orderable: false, 
+            searchable: false,
+            render: function(data, type, row) {
                 var viewUrl = `{{ url('order') }}/${data}`;
-                var editUrl = `{{ url('order') }}/${data}/edit`; // <-- Edit URL
+                var editUrl = `{{ url('order') }}/${data}/edit`; 
                 var deleteUrl = `{{ url('order') }}/${data}`;
                 var duplicateUrl = `{{ url('order') }}/${data}/duplicate`;
                 return `
-                    <div class="flex space-x-2">
-                        <a href="${viewUrl}" class="text-blue-600 hover:underline" title="View">
-                            <i class="fa-solid fa-eye"></i>
-                        </a>
-                        
-                        <button type="button" class="text-indigo-600 hover:underline edit-button" data-url="${editUrl}" title="Edit">
-                            <i class="fa-solid fa-pencil"></i>
-                        </button>
-                        
-                        <form action="${duplicateUrl}" method="POST" onsubmit="return confirm('Are you sure you want to duplicate this order?');">
+                    <div class="flex flex-col space-y-1">
+                        <a href="${viewUrl}" class="text-blue-600 hover:underline text-xs" title="View">View PO</a>
+                        <a href="${editUrl}" class="text-indigo-600 hover:underline text-xs" title="Edit Full">Edit</a>
+                        <form action="${duplicateUrl}" method="POST" onsubmit="return confirm('Duplicate this order?');" class="inline">
                             @csrf
-                            <button type="submit" class="text-green-600 hover:underline" title="Duplicate">
-                                <i class="fa-solid fa-copy"></i>
-                            </button>
+                            <button type="submit" class="text-green-600 hover:underline text-xs" title="Duplicate">Duplicate</button>
                         </form>
-                        
-                        <a href="#" onclick="event.preventDefault(); if(confirm('Delete this order?')) { document.getElementById('delete-form-${data}').submit(); }" class="text-red-600 hover:underline" title="Delete">
-                            <i class="fa-solid fa-trash"></i>
-                        </a>
-                        <form id="delete-form-${data}" action="${deleteUrl}" method="POST" style="display: none;">
+                        <form action="${deleteUrl}" method="POST" onsubmit="return confirm('Delete this order?');" class="inline">
                             @csrf
                             @method('DELETE')
+                            <button type="submit" class="text-red-600 hover:underline text-xs" title="Delete">Delete</button>
                         </form>
                     </div>
                 `;
-            }}
-        ],
-        lengthMenu: [[20, 50, 100, 300, -1], [20, 50, 100, 300, "All"]],
-        pageLength: 20,
-        drawCallback: function() {
-            // Re-check checkboxes after table is drawn
-            $('#select-all').prop('checked', false);
-            updateReportForm(); // Clear the form on redraw
+            }
         }
-    });
-
-    // *** FIX: Move the DataTables search bar to your container ***
-    // This finds the DataTables search box and moves it into your div
-    
-
-    // --- Filter Button Logic ---
-    $('.filter-button').on('click', function() {
-        // 1. Set 'active' class and disable the button
-        $('.filter-button').removeClass('active').prop('disabled', false);
-        $(this).addClass('active').prop('disabled', true);
-        
-        // 2. Reload the DataTable
-        table.ajax.reload();
-        
-        // 3. Update summary boxes (by reloading the page with the filter)
-        var newStatus = $(this).data('status');
-        var newUrl = new URL(window.location.href);
-        newUrl.searchParams.set('status', newStatus);
-        
-        // Reload the page to update the summary boxes
-        window.location.href = newUrl.href;
-    });
-
-    // --- Set the active button on page load ---
-    if (currentStatusFilter) {
-        $(`.filter-button[data-status="${currentStatusFilter}"]`).addClass('active').prop('disabled', true);
-    } else {
-        $(`.filter-button[data-status="all"]`).addClass('active').prop('disabled', true);
+    ],
+    lengthMenu: [[20, 50, 100, 300, -1], [20, 50, 100, 300, "All"]],
+    pageLength: 20,
+    drawCallback: function() {
+        $('#select-all').prop('checked', false);
+        updateSelectedIds();
     }
-
+});
+    // --- Filter Button Logic ---
+    $('#filter-search-button').on('click', function() {
+        table.ajax.reload();
+    });
 
     // --- Checkbox Handlers ---
     $('#select-all').on('click', function() {
-        var checked = this.checked;
-        $('.order-checkbox').prop('checked', checked);
-        updateReportForm();
+        $('.order-checkbox').prop('checked', this.checked);
+        updateSelectedIds();
     });
 
     $('#orders-table tbody').on('click', '.order-checkbox', function() {
-        updateReportForm();
+        updateSelectedIds();
     });
 
-    function updateReportForm() {
-        var container = $('#selected-ids-container').empty();
+    function updateSelectedIds() {
+        // Clear all forms
+        $('#report-ids').empty();
+        $('#bulk-edit-ids-container').empty();
+        $('#bulk-po-ids-container').empty();
+        $('#supplier-report-ids').empty();
+        
+        // Re-add hidden inputs to all forms
         $('.order-checkbox:checked').each(function() {
-            container.append(`<input type="hidden" name="order_ids[]" value="${$(this).val()}">`);
+            let id = $(this).val();
+            $('#report-ids').append(`<input type="hidden" name="order_ids[]" value="${id}">`);
+            $('#bulk-edit-ids-container').append(`<input type="hidden" name="order_ids[]" value="${id}">`);
+            $('#bulk-po-ids-container').append(`<input type="hidden" name="order_ids[]" value="${id}">`);
+            $('#supplier-report-ids').append(`<input type="hidden" name="order_ids[]" value="${id}">`);
         });
     }
 
-    // This handles the "Update All Orders" form submission
-    $('#update-form').on('submit', function(e) {
-        // Find all selected checkboxes
-        var selectedCheckboxes = $('.order-checkbox:checked');
-        
-        if (selectedCheckboxes.length === 0) {
-            alert('Please select at least one order to update.');
-            e.preventDefault(); // Stop the form from submitting
-            return;
-        }
-
-        // Clear the form of any old hidden inputs from previous clicks
-        $(this).find('input[type="hidden"][name^="updates"]').remove();
-        
-        // Disable all inputs first
-        $(this).find('select[name^="updates"]').prop('disabled', true);
-        $(this).find('input[name^="updates"]').prop('disabled', true);
-        $(this).find('textarea[name^="updates"]').prop('disabled', true);
-
-        // For each selected checkbox, find its corresponding inputs and re-enable them
-        selectedCheckboxes.each(function() {
-            var row = $(this).closest('tr');
-            
-            // Find all inputs/selects in that row and enable them
-            row.find('select[name^="updates"]').prop('disabled', false);
-            row.find('input[name^="updates"]').prop('disabled', false);
-            row.find('textarea[name^="updates"]').prop('disabled', false);
-            
-            // Also add the checkbox value itself, so the controller knows which order to update
-            $(this).clone().hide().appendTo('#update-form');
-        });
-
-        // The form will now submit with only the data from the selected rows.
-    });
-    
-    // --- Modal Open/Close Logic ---
-    $('#orders-table tbody').on('click', '.edit-button', function() {
-        var url = $(this).data('url');
-        
-        // Show the modal with a "loading" spinner
-        $('#edit-order-modal').show();
-        $('#edit-modal-content').html(`
-            <div class="p-6 text-center">
-                <i class="fas fa-spinner fa-spin text-4xl text-blue-600"></i>
-                <p class="mt-2 text-gray-600">Loading Order Details...</p>
-            </div>
-        `);
-        
-        // Load the form from the controller
-        $('#edit-modal-content').load(url, function(response, status, xhr) {
-            if (status == "error") {
-                $('#edit-modal-content').html(`
-                    <div class="p-6 text-center">
-                        <i class="fas fa-times-circle text-4xl text-red-600"></i>
-                        <p class="mt-2 text-red-600">Error loading data: ${xhr.statusText}</p>
-                    </div>
-                `);
-            }
-        });
-    });
-
-    // Close the modal when "Cancel" is clicked (uses event delegation)
-    $(document).on('click', '#close-edit-modal-button, #close-edit-modal-button-x', function() {
-        $('#edit-order-modal').hide();
-    });
-    
-    // Close modal if clicking on the background overlay
-    $('#edit-order-modal').on('click', function(e) {
-        if ($(e.target).is(this)) {
-            $(this).hide();
+    // --- Form submission check ---
+    $('#bulk-edit-form').on('submit', function(e) {
+        if ($('#bulk-edit-ids-container input').length === 0) {
+            alert('Please select at least one order to edit.');
+            e.preventDefault();
         }
     });
 
-    // --- Inline Calculation Logic ---
-
-    // Function to calculate totals for a specific row
-    function calculateTotals(rowId) {
-        // Find all inputs for this row
-        const row = $(`#orders-table tr:has(input[data-id="${rowId}"])`);
-        
-        // Get Buyer values
-        const b_price = parseFloat(row.find(`input[name="updates[${rowId}][order_price]"]`).val()) || 0;
-        const b_mould = parseFloat(row.find(`input[name="updates[${rowId}][order_mouldprice]"]`).val()) || 0;
-        
-        // Get Supplier values
-        const s_price = parseFloat(row.find(`input[name="updates[${rowId}][supplier_price]"]`).val()) || 0;
-        const s_mould = parseFloat(row.find(`input[name="updates[${rowId}][supplier_mould_price]"]`).val()) || 0;
-
-        // Calculate (using the logic from your controller)
-        const buyerTotal = b_price + b_mould;
-        const supplierTotal = s_price + s_mould;
-        
-        // Update the 'value' of the read-only total inputs
-        $(`#buyer_total_${rowId}`).val(buyerTotal.toFixed(2));
-        $(`#supplier_total_${rowId}`).val(supplierTotal.toFixed(2));
-    }
-
-    // Add event listener for Buyer fields
-    $('#orders-table tbody').on('input', '.calc-buyer', function() {
-        const rowId = $(this).data('id');
-        calculateTotals(rowId);
+    $('#bulk-po-form').on('submit', function(e) {
+        if ($('#bulk-po-ids-container input').length === 0) {
+            alert('Please select at least one order to print.');
+            e.preventDefault();
+        }
     });
 
-    // Add event listener for Supplier fields
-    $('#orders-table tbody').on('input', '.calc-supplier', function() {
-        const rowId = $(this).data('id');
-        calculateTotals(rowId);
+    $('#report-form').on('submit', function(e) {
+        if ($('#report-ids input').length === 0) {
+            alert('Please select at least one order for the report.');
+            e.preventDefault();
+        }
     });
 
-    // *** ADD THIS SCRIPT FOR THE ACCORDION ***
-    $('.accordion-toggle').on('click', function() {
-        // Find the content panel associated with this button
-        var content = $(this).next('.accordion-content');
+    $('#supplier-report-form').on('submit', function(e) {
+        if ($('#supplier-report-ids input').length === 0) {
+            alert('Please select at least one order for the supplier report.');
+            e.preventDefault();
+        }
+    });
+    
+    // --- "Read More" for Remarks ---
+    $('#orders-table tbody').on('click', '.remark-toggle', function(e) {
+        e.preventDefault();
+        var short = $(this).siblings('.remark-short');
+        var full = $(this).siblings('.remark-full');
         
-        // Find the icon
-        var icon = $(this).find('.chevron-icon');
-
-        // Toggle the 'hidden' class on the content
-        content.slideToggle(200); // Use slideToggle for a smooth animation
-
-        // Toggle the icon rotation
-        icon.toggleClass('rotate-180');
-        
-        // Update the aria-expanded attribute for accessibility
-        var isExpanded = $(this).attr('aria-expanded') === 'true';
-        $(this).attr('aria-expanded', !isExpanded);
+        if (full.is(':visible')) {
+            full.hide();
+            short.show();
+            $(this).text('...more');
+        } else {
+            short.hide();
+            full.show();
+            $(this).text('...less');
+        }
     });
 });
 </script>

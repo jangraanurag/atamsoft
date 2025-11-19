@@ -15,7 +15,7 @@
       <!-- Total Order Value -->
       <div class="bg-white rounded-xl shadow p-6 text-center">
         <h2 class="text-lg font-semibold text-gray-700 mb-2">Total Order Value</h2>
-        <p class="text-3xl font-bold text-green-600">₹ 1,23,45,000</p>
+        <p class="text-3xl font-bold text-green-600">1,23,45,000</p>
       </div>
 
       <!-- Delivered Orders -->

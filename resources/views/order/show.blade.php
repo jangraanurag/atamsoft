@@ -21,11 +21,12 @@
                 background: #fff !important;
                 color: #000 !important;
                 font-size: 12px !important;
+                font-family: Arial, sans-serif !important;
             }
 
             @page {
                 size: A4;
-                margin: 6mm;
+                margin: 10mm;
             }
 
             #po-container {
@@ -33,34 +34,46 @@
                 border: none !important;
                 margin: 0 !important;
                 padding: 0 !important;
-            }
-
-            img {
-                max-height: 120px !important;
-                object-fit: contain !important;
-            }
-
-            /* Force side-by-side layout for summary section */
-            .print-flex {
-                display: flex !important;
-                flex-direction: row !important;
-                justify-content: space-between !important;
-                align-items: flex-start !important;
-                gap: 20px !important;
-            }
-
-            .print-colors {
-                width: 58% !important;
-            }
-
-            .print-summary {
-                width: 40% !important;
+                width: 100% !important;
             }
 
             /* Prevent splitting important sections */
-            #po-container, #po-container * {
+            .section-break {
                 page-break-inside: avoid !important;
             }
+        }
+        
+        /* Custom styling for vertical table layout */
+        .vertical-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .vertical-table tr {
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .vertical-table td {
+            padding: 8px 12px;
+            vertical-align: top;
+        }
+        
+        .vertical-table td:first-child {
+            font-weight: 600;
+            width: 35%;
+            background-color: #f8fafc;
+        }
+        
+        .vertical-table td:last-child {
+            width: 65%;
+        }
+        
+        .instruction-box {
+            background-color: #f0f9ff;
+            border: 1px solid #bae6fd;
+            padding: 12px;
+            margin: 15px 0;
+            border-radius: 4px;
         }
     </style>
 </head>
@@ -69,7 +82,7 @@
 
     <!-- ======== HEADER CONTROLS (HIDDEN IN PRINT) ======== -->
     <div id="print-controls" class="max-w-4xl mx-auto mb-4 flex justify-end items-center space-x-4">
-        <a href="{{ route('order.all') }}" class="text-sm text-gray-600 hover:text-gray-900">
+        <a href="{{ route('order.index') }}" class="text-sm text-gray-600 hover:text-gray-900">
             <i class="fa-solid fa-arrow-left mr-1"></i> Back to Orders
         </a>
         <button onclick="window.print()" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-lg hover:bg-blue-700 shadow-sm">
@@ -79,168 +92,124 @@
 
     <!-- ======== MAIN CONTAINER ======== -->
     <div id="po-container" class="bg-white max-w-4xl mx-auto shadow-lg rounded-lg border border-gray-200">
-        <div class="p-6 sm:p-12">
+        <div class="p-8">
 
-            <!-- HEADER -->
-            <header class="flex justify-between items-start pb-6 border-b-2 border-gray-200">
+            <!-- HEADER - Order number and dates on right -->
+            <header class="flex justify-between items-start pb-4 border-b-2 border-gray-300">
                 <div>
-                    <h1 class="text-3xl font-bold text-gray-900 mt-4">Purchase Order</h1>
-                    <p class="text-gray-500">PO Number: #{{ $order->id }}</p>
+                    <h1 class="text-2xl font-bold text-gray-900">PURCHASE ORDER</h1>
                 </div>
                 <div class="text-right">
-                    {{-- Optional company info --}}
+                    <div class="text-2xl font-bold text-blue-600">#{{ $order->id }}</div>
+                    <div class="mt-2 text-sm text-gray-600">
+                        <p><strong>Order Date:</strong> {{ $order->order_date ? $order->order_date->format('m/d/Y') : 'N/A' }}</p>
+                        <p><strong>Order Delivery:</strong> {{ $order->order_deliverydate ? $order->order_deliverydate->format('m/d/Y') : 'N/A' }}</p>
+                    </div>
                 </div>
             </header>
 
-            <!-- SUPPLIER DETAILS -->
-            <div class="grid grid-cols-2 gap-8 my-8">
-                <div>
-                    <h3 class="font-semibold text-gray-700 uppercase tracking-wide">Vendor / Supplier</h3>
-                    <address class="mt-2 not-italic text-gray-600">
-                        <strong class="text-gray-900">{{ $order->supplier->name ?? 'N/A' }}</strong><br>
-                        {{ $order->supplier->address_line_1 ?? 'N/A' }}<br>
-                        {{ $order->supplier->city ?? '' }}, {{ $order->supplier->state ?? '' }} {{ $order->supplier->postal_code ?? '' }}
-                    </address>
-                </div>
-                <div>
-                    {{-- Ship To (if needed) --}}
-                </div>
+            <!-- INSTRUCTION BOX -->
+            <div class="instruction-box section-break">
+                <p class="text-sm font-semibold text-blue-800 text-center">
+                    MAKE SHOT EXACT SIZE FOLLOW ART WORK FILE FOR FINAL SIZE
+                </p>
             </div>
 
-            <!-- ORDER INFO BAR -->
-            <div class="p-4 bg-gray-50 rounded-lg grid grid-cols-3 gap-4 text-sm">
-                <div>
-                    <strong class="text-gray-600 block">Order Date</strong>
-                    <span class="text-gray-800">{{ $order->order_date ? $order->order_date->format('M d, Y') : 'N/A' }}</span>
-                </div>
-                <div>
-                    <strong class="text-gray-600 block">Delivery Date</strong>
-                    <span class="text-gray-800">{{ $order->order_deliverydate ? $order->order_deliverydate->format('M d, Y') : 'N/A' }}</span>
-                </div>
-                <div>
-                    <strong class="text-gray-600 block">Status</strong>
-                    <span class="text-gray-800">{{ $order->status->status_name ?? 'N/A' }}</span>
-                </div>
-                <div>
-                    <strong class="text-gray-600 block">Ship Via</strong>
-                    <span class="text-gray-800">{{ $order->shipper->shipper_name ?? $order->order_shipvia ?? 'N/A' }}</span>
-                </div>
-                <div>
-                    <strong class="text-gray-600 block">Shipment No.</strong>
-                    <span class="text-gray-800">{{ $order->order_shipmentno ?? 'N/A' }}</span>
-                </div>
-            </div>
-
-            <!-- LINE ITEMS -->
-            <div class="mt-8">
-                <h3 class="text-lg font-semibold text-gray-900">Order Details</h3>
-                <table class="w-full mt-4 text-left">
-                    <thead class="bg-gray-100">
+            <!-- VERTICAL TABLE FOR ORDER DETAILS -->
+            <div class="section-break">
+                <table class="vertical-table">
+                    <tbody>
                         <tr>
-                            <th class="p-3 text-sm font-semibold text-gray-700">Product / Brand</th>
-                            <th class="p-3 text-sm font-semibold text-gray-700">Specs (L x W)</th>
-                            <th class="p-3 text-sm font-semibold text-gray-700 text-right">Qty</th>
-                            <th class="p-3 text-sm font-semibold text-gray-700 text-right">Supplier Price</th>
-                            <th class="p-3 text-sm font-semibold text-gray-700 text-right">Total</th>
+                            <td>Item Name</td>
+                            <td>{{ $order->brand->brand_name ?? 'N/A' }}</td>
                         </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-200">
                         <tr>
-                            <td class="p-3 align-top">
-                                <p class="font-medium text-gray-800">{{ $order->product->product_name ?? 'N/A' }}</p>
-                                <p class="text-xs text-gray-600">{{ $order->brand->brand_name ?? 'N/A' }}</p>
-                            </td>
-                            <td class="p-3 align-top text-gray-600">
-                                {{ $order->order_length }} x {{ $order->order_width }} {{ $order->d_unit->dunit_name ?? '' }}
-                            </td>
-                            <td class="p-3 align-top text-gray-600 text-right">
-                                Order Qty: {{ number_format($order->order_qty) }} {{ $order->unit->unit_name ?? '' }}<br/>
-                                Manufactured Qty: ±{{ number_format($order->order_manufacturedqty) }}%
-                            </td>
-                            <td class="p-3 align-top text-gray-600 text-right">{{ number_format($order->supplier_price, 2) }}</td>
-                            <td class="p-3 align-top text-gray-800 font-medium text-right">{{ number_format($order->supplier_price * $order->order_qty, 2) }}</td>
+                            <td>Product</td>
+                            <td>{{ $order->product->product_name ?? 'N/A' }}</td>
+                        </tr>
+                        <tr>
+                            <td>Length</td>
+                            <td>{{ $order->order_length ?? 'N/A' }} {{ $order->d_unit->dunit_shorthand ?? '' }}</td>
+                        </tr>
+                        <tr>
+                            <td>Width</td>
+                            <td>{{ $order->order_width ?? 'N/A' }} {{ $order->d_unit->dunit_shorthand ?? '' }}</td>
+                        </tr>
+                        <tr>
+                            <td>Ordered Quantity</td>
+                            <td>{{ number_format($order->order_qty) }} {{ $order->unit->unit_shorthand ?? '' }}</td>
+                        </tr>
+                        <tr>
+                            <td>Manufactured Quantity</td>
+                            <td>{{ $order->order_manufacturedqty ?? '0' }}%</td>
+                        </tr>
+                        <tr>
+                            <td>Modal Price</td>
+                            <td>{{ number_format($order->supplier_mould_price ?? 0, 2) }}</td>
+                        </tr>
+                        <tr>
+                            <td>Rate</td>
+                            <td>{{ number_format($order->supplier_price ?? 0, 2) }}</td>
+                        </tr>
+                        <tr>
+                            <td>Amount</td>
+                            <td>{{ number_format($order->supplier_total ?? 0, 2) }}</td>
+                        </tr>
+                        <tr>
+                            <td>Shipment Number</td>
+                            <td>{{ $order->order_shipmentno ?? 'N/A' }}</td>
+                        </tr>
+                        <tr>
+                            <td>Weight</td>
+                            <td>{{ $order->order_weight ?? 'N/A' }} Grams</td>
+                        </tr>
+                        <tr>
+                            <td>Die Set</td>
+                            <td>{{ $order->dieset ?? 'NO' }}</td>
+                        </tr>
+                        <tr>
+                            <td>Null With Loop</td>
+                            <td>{{ $order->order_nailmaterial ? 'YES' : 'NO' }}</td>
                         </tr>
                     </tbody>
                 </table>
             </div>
 
-            <!-- COLORS & SUMMARY (SIDE BY SIDE) -->
-            <div class="mt-8 print-flex flex flex-col md:flex-row justify-between">
-                <div class="print-colors mb-8 md:mb-0">
-                    <h3 class="text-base font-semibold text-gray-900">Colors, Materials & Other Info</h3>
-                    @if(!empty($order->colors) && (is_array($order->colors) || is_object($order->colors)))
-                        <div class="flex flex-wrap gap-2 mt-2">
-                            @foreach($order->colors as $colorInfo)
-                                <span class="flex items-center text-sm font-medium text-gray-700 bg-gray-200 px-3 py-1 rounded-full">
-                                    {{ $colorInfo['color'] ?? 'N/A' }} 
-                                    @if(isset($colorInfo['qty']) && !empty($colorInfo['qty']))
-                                        <span class="ml-1.5 text-xs text-gray-500">({{ $colorInfo['qty'] }} pcs)</span>
-                                    @endif
-                                </span>
-                            @endforeach
-                        </div>
-                    @endif
-                    <p class="text-sm text-gray-600 mt-2">Material: {{ $order->order_nailmaterial ?? 'N/A' }}</p>
-                    <p class="text-sm text-gray-600 mt-2">Weight: {{ $order->order_weight ?? 'N/A' }} GRAMS</p>
-                    <p class="text-sm text-gray-600 mt-2">Die Set: {{ trim($order->dieset ?? '') !== '' ? $order->dieset : 'No' }}</p>
-                    <p class="text-sm text-gray-600 mt-2">Nail With Logo: {{ trim($order->order_nailmaterial ?? '') !== '' ? $order->order_nailmaterial : 'No' }}</p>
-                </div>
-
-                <div class="print-summary w-full max-w-xs text-gray-700">
-                    <h3 class="text-base font-semibold text-gray-900">Summary</h3>
-                    <div class="space-y-3 mt-4">
-                        <div class="flex justify-between">
-                            <span class="text-gray-600">Subtotal:</span>
-                            <span class="font-medium text-gray-900">{{ number_format($order->supplier_price * $order->order_qty, 2) }}</span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span class="text-gray-600">Mould Price:</span>
-                            <span class="font-medium text-gray-900">{{ number_format($order->supplier_mould_price, 2) }}</span>
-                        </div>
-                        <hr class="my-2">
-                        <div class="flex justify-between">
-                            <strong class="text-gray-900">PO Total:</strong>
-                            <strong class="text-xl text-gray-900">{{ number_format($order->supplier_total, 2) }}</strong>
-                        </div>
-                    </div>
+            <!-- REMARKS SECTION -->
+            <div class="mt-6 section-break">
+                <h3 class="text-lg font-semibold text-gray-900 mb-2">Remarks</h3>
+                <div class="p-3 bg-gray-50 rounded border border-gray-200">
+                    <p class="text-sm text-gray-700 whitespace-pre-line">{{ $order->order_remark ?? 'N/A' }}</p>
                 </div>
             </div>
 
-            <!-- REMARKS -->
-            <div class="mt-12 border-t pt-8">
-                <h3 class="text-base font-semibold text-gray-900">Remarks</h3>
-                <p class="text-gray-600 text-sm mt-2">{{ $order->supplier_remark ?? $order->order_remark ?? 'N/A' }}</p>
-            </div>
-
-            <!-- ATTACHMENTS -->
-            <div class="mt-8">
-                <h3 class="text-base font-semibold text-gray-900">Attachments</h3>
-                <div class="flex space-x-6 mt-2">
+            <!-- ATTACHMENTS SECTION -->
+            @if($order->order_image || $order->order_cdr)
+            <div class="mt-6 section-break">
+                <h3 class="text-lg font-semibold text-gray-900 mb-2">Attachments</h3>
+                <div class="flex space-x-4">
                     @if($order->order_image)
                         <div>
                             <p class="text-sm text-gray-600 mb-1">Order Image</p>
                             <a href="{{ asset('storage/app/public/' . $order->order_image) }}" target="_blank">
-                                <img src="{{ asset('storage/app/public/' . $order->order_image) }}" class="h-40 w-auto border rounded-lg shadow-sm object-cover">
+                                <img src="{{ asset('storage/app/public/' . $order->order_image) }}" class="h-24 w-auto border rounded shadow-sm object-cover">
                             </a>
                         </div>
                     @endif
-                    <div class="space-y-2">
-                        @if($order->order_logo)
-                            <a href="{{ asset('storage/app/public/' . $order->order_logo) }}" target="_blank" class="flex items-center text-indigo-600 hover:underline"><i class="fa-solid fa-image w-5 mr-2"></i> View Logo</a>
-                        @endif
-                        @if($order->order_cdr)
-                            <a href="{{ asset('storage/app/public/' . $order->order_cdr) }}" target="_blank" class="flex items-center text-indigo-600 hover:underline"><i class="fa-solid fa-file-zipper w-5 mr-2"></i> Download CDR File</a>
-                        @endif
-                        @if($order->order_po)
-                            <a href="{{ asset('storage/app/public/' . $order->order_po) }}" target="_blank" class="flex items-center text-indigo-600 hover:underline"><i class="fa-solid fa-file-invoice w-5 mr-2"></i> View Purchase Order Doc</a>
-                        @endif
-                    </div>
+                    @if($order->order_cdr)
+                        <div class="flex items-center">
+                            <a href="{{ asset('storage/app/public/' . $order->order_cdr) }}" target="_blank" class="flex items-center text-blue-600 hover:underline">
+                                <i class="fa-solid fa-file-zipper w-5 mr-2"></i> CDR File
+                            </a>
+                        </div>
+                    @endif
                 </div>
             </div>
+            @endif
 
             <!-- FOOTER -->
-            <div class="mt-16 border-t pt-6 text-center text-xs text-gray-500">
-                <p>Purchase Order #{{ $order->id }}</p>
+            <div class="mt-8 pt-4 border-t text-center text-xs text-gray-500">
+                <p>Purchase Order #{{ $order->id }} - Generated on {{ now()->format('m/d/Y') }}</p>
             </div>
 
         </div>

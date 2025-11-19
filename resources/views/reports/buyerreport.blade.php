@@ -1,5 +1,45 @@
 @extends('layout')
 @section('title', 'Generated Buyer Report')
+@section('header')
+<style>
+    @media print {
+        @page {
+            size: A4 landscape;
+            margin: 5mm;
+        }
+        body {
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+            font-size: 10px; /* Smaller font for print */
+            background-color: white !important;
+        }
+        /* Hide navigation and other non-print elements */
+        header, footer, .no-print {
+            display: none !important;
+        }
+        main {
+            margin: 0 !important;
+            padding: 0 !important;
+            width: 100% !important;
+        }
+        /* Compact table styles */
+        table {
+            width: 100% !important;
+            font-size: 9px;
+        }
+        th, td {
+            padding: 2px 4px !important;
+            white-space: normal; /* Allow wrapping */
+        }
+        /* Ensure images print */
+        img {
+            max-width: 40px !important;
+            height: auto !important;
+        }
+    }
+</style>
+@endsection
+
 @section('content')
 
 <main class="flex-grow p-4 sm:p-6 lg:p-8 bg-gray-50">
@@ -13,19 +53,31 @@
         </div>
 
         <div class="mb-8">
-            <table class="w-full sm:w-1/2 md:w-1/3 border-2 border-cyan-700">
+            <table class="w-full sm:w-2/3 md:w-1/2 border-2 border-cyan-700">
                 <thead>
                     <tr class="bg-cyan-100" style="background-color: #e0f7fa;">
+                        <th class="px-4 py-2 text-left text-xs font-bold text-cyan-800 uppercase border-b border-cyan-700">No of Buyers</th>
                         <th class="px-4 py-2 text-left text-xs font-bold text-cyan-800 uppercase border-b border-cyan-700">Number of Orders</th>
                         <th class="px-4 py-2 text-left text-xs font-bold text-cyan-800 uppercase border-b border-cyan-700">Total Amount</th>
-                        <th class="px-4 py-2 text-left text-xs font-bold text-cyan-800 uppercase border-b border-cyan-700">GST Orders</th>
+                        <th class="px-4 py-2 text-left text-xs font-bold text-cyan-800 uppercase border-b border-cyan-700">Action</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr class="bg-cyan-100" style="background-color: #e0f7fa;">
+                        <td class="px-4 py-2 text-sm text-gray-800 border-t border-cyan-700">{{ $orders->unique('order_buyer')->count() }}</td>
                         <td class="px-4 py-2 text-sm text-gray-800 border-t border-cyan-700">{{ $totalOrders }}</td>
-                        <td class="px-4 py-2 text-sm text-gray-800 border-t border-cyan-700">${{ number_format($totalAmount, 2) }}</td>
-                        <td class="px-4 py-2 text-sm text-gray-800 border-t border-cyan-700">${{ number_format($totalGst, 2) }}</td>
+                        <td class="px-4 py-2 text-sm text-gray-800 border-t border-cyan-700">{{ number_format($totalAmount, 2) }}</td>
+                        <td class="px-4 py-2 text-sm text-gray-800 border-t border-cyan-700">
+                            <form action="{{ route('order.bulkEditForm') }}" method="POST">
+                                @csrf
+                                @foreach($orders as $order)
+                                    <input type="hidden" name="order_ids[]" value="{{ $order->id }}">
+                                @endforeach
+                                <button type="submit" class="bg-indigo-600 text-white px-3 py-1 rounded hover:bg-indigo-700 text-xs">
+                                    Edit Orders
+                                </button>
+                            </form>
+                        </td>
                     </tr>
                 </tbody>
             </table>
@@ -69,8 +121,8 @@
                             <td class="px-4 py-3 text-sm text-gray-800">{{ $order->product->product_name ?? 'N/A' }}</td>
                             <td class="px-4 py-3 text-sm text-gray-800">{{ $order->brand->brand_name ?? 'N/A' }}</td>
                             <td class="px-4 py-3 text-sm text-gray-800">{{ $order->order_qty ?? 0 }}</td>
-                            <td class="px-4 py-3 text-sm text-gray-800">${{ number_format($order->order_price, 2) }}</td>
-                            <td class="px-4 py-3 text-sm text-gray-800">${{ number_format($order->buyer_total, 2) }}</td>
+                            <td class="px-4 py-3 text-sm text-gray-800">{{ number_format($order->order_price, 2) }}</td>
+                            <td class="px-4 py-3 text-sm text-gray-800">{{ number_format($order->buyer_total, 2) }}</td>
                             <td class="px-4 py-3 text-sm text-gray-800">{{ $order->buyer->buyer_name ?? 'N/A' }}</td>
                             <td class="px-4 py-3 text-sm text-gray-800">{{ $order->order_date ? $order->order_date->format('d/m/Y') : 'N/A' }}</td>
                             <td class="px-4 py-3 text-sm text-gray-800">{{ $order->order_deliverydate ? $order->order_deliverydate->format('d/m/Y') : 'N/A' }}</td>
@@ -96,7 +148,7 @@
                             <td class_ ="px-4 py-3 text-sm uppercase" colspan="4">Total Amount</td>
                             <td class="px-4 py-3 text-sm">{{ $totalQuantity }}</td>
                             <td class="px-4 py-3 text-sm"></td>
-                            <td class="px-4 py-3 text-sm">${{ number_format($totalAmount, 2) }}</td>
+                            <td class="px-4 py-3 text-sm">{{ number_format($totalAmount, 2) }}</td>
                             <td class="px-4 py-3 text-sm uppercase" colspan="3">Total Quantity</td>
                             <td class="px-4 py-3 text-sm">{{ $totalPayment }}</td>
                         </tr>

@@ -113,7 +113,7 @@
                             <td class="px-4 py-3 text-sm font-medium text-gray-900">{{ $order->id }}</td>
                             <td class="px-4 py-3">
                                 @if($order->order_image)
-                                    <img src="{{ Storage::url($order->order_image) }}" alt="img" class="h-10 w-10 object-cover rounded">
+                                    <img src="{{ asset('storage/app/public/'.$order->order_image) }}" alt="img" class="h-10 w-10 object-cover rounded">
                                 @else
                                     <span class="text-gray-400 text-xs">[No Image]</span>
                                 @endif

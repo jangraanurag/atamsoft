@@ -1,5 +1,3 @@
-<?php
-
 @extends('layout')
 @section('title', 'Monitoring Dashboard')
 
@@ -56,12 +54,12 @@
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
             <div class="summary-card">
                 <h3>Total Buyer Amount</h3>
-                <p>${{ number_format($totalBuyerAmount, 2) }}</p>
+                <p>{{ number_format($totalBuyerAmount, 2) }}</p>
                 <small>from {{ $totalBuyers }} buyer(s)</small>
             </div>
             <div class="summary-card">
                 <h3>Total Supplier Amount</h3>
-                <p>${{ number_format($totalSupplierAmount, 2) }}</p>
+                <p>{{ number_format($totalSupplierAmount, 2) }}</p>
                 <small>from {{ $totalSuppliers }} supplier(s)</small>
             </div>
         </div>
@@ -74,8 +72,8 @@
                         <tr>
                             <th class="px-4 py-2 text-left text-xs font-bold uppercase">Supplier Name</th>
                             <th class="px-4 py-2 text-left text-xs font-bold uppercase">Work Load %</th>
-                            <th class="px-4 py-2 text-left text-xs font-bold uppercase">Total Orders</th>
-                            <th class="px-4 py-2 text-left text-xs font-bold uppercase">Supplier Amount</th>
+                            <th class="px-4 py-2 text-left text-xs font-bold uppercase">Total Orders ({{ $supplierData->sum('total_orders') }})</th>
+                            <th class="px-4 py-2 text-left text-xs font-bold uppercase">Supplier Amount ({{ number_format($totalSupplierAmount, 2) }})</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -91,7 +89,7 @@
                                     </div>
                                 </td>
                                 <td class="px-4 py-2 text-sm text-gray-800">{{ $supplier['total_orders'] }}</td>
-                                <td class="px-4 py-2 text-sm text-gray-800">${{ number_format($supplier['supplier_amount'], 2) }}</td>
+                                <td class="px-4 py-2 text-sm text-gray-800">{{ number_format($supplier['supplier_amount'], 2) }}</td>
                             </tr>
                         @empty
                             <tr>

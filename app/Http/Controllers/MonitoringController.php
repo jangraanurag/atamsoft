@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Order;
-use App\Models\Status;
+use App\Models\status;
 use App\Models\Supplier;
 
 class MonitoringController extends Controller
@@ -20,7 +20,7 @@ class MonitoringController extends Controller
 
         // 3. Apply filter
         if ($statusFilter !== 'All') {
-             $statusId = Status::where('status_name', $statusFilter)->value('id');
+             $statusId = status::where('status_name', $statusFilter)->value('id');
              if ($statusId) {
                  $query->where('order_status', $statusId);
              } else {
@@ -66,7 +66,7 @@ class MonitoringController extends Controller
         })->values();
 
         // 7. Get all statuses for the filter dropdown
-        $statuses = Status::all();
+        $statuses = status::all();
 
         return view('monitoring.index', compact(
             'orders', 

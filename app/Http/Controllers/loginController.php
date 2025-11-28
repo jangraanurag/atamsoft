@@ -17,20 +17,18 @@ class loginController extends Controller
     public function authenticate(Request $request)
     {
 
-            $user=User::where('email', $request->email)
-                ->where('password', $request->password)
-                ->first();
-                //return $user;
-            if($user)
-            {
-                Session()->put('user', $user->id);
-                Session()->put('login_type', 'buyer');
+            $user = User::where('email', $request->email)->first();
+
+            if ($user && Hash::check($request->password, $user->password)) {
+                auth()->login($user);
+                Session()->put('login_type', $request->login_type);
                 return redirect()->route('order.new');
             }
             return redirect()->route('login');
     }
     public function logout()
     {
+        auth()->logout();
         Session()->flush();
         return redirect()->route('login');
     }

@@ -13,10 +13,10 @@ Route::get('/',[loginController::class, 'login'])->name('login');
 Route::post('/authenticate', [loginController::class, 'authenticate'])->name('authenticate');
 Route::get('/logout', [loginController::class, 'logout'])->name('logout');
 
+Route::middleware(['auth'])->group(function () {
     // Monitoring page
     Route::get('/monitoring', [MonitoringController::class, 'index'])->name('monitoring.index');
 
-//Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', function () {
         return view('dashboard');
     })->name('dashboard');
@@ -153,6 +153,8 @@ Route::get('/logout', [loginController::class, 'logout'])->name('logout');
         // This route *saves* the changes from the bulk edit page
         Route::post('/bulk-update', [OrderController::class, 'bulkUpdate'])->name('order.bulkUpdate');
         Route::post('/bulk-po', [OrderController::class, 'bulkPo'])->name('order.bulkPo');
+        Route::post('/bulk-delete', [OrderController::class, 'bulkDelete'])->name('order.bulkDelete');
+        Route::post('/bulk-duplicate', [OrderController::class, 'bulkDuplicate'])->name('order.bulkDuplicate');
     });
 
     // DataTables AJAX route
@@ -171,5 +173,5 @@ Route::get('/logout', [loginController::class, 'logout'])->name('logout');
     Route::prefix('import')->group(function () {
         Route::get('/', [ImportController::class, 'index'])->name('import.index');
         Route::post('/upload', [ImportController::class, 'upload'])->name('import.upload');
+    });
 });
-//});

@@ -159,10 +159,9 @@ class OrderController extends Controller
         // 3. Get all suppliers for dropdowns
         $suppliers = Supplier::orderBy('name')->get();
 
-        // 4. Create a base query for summary boxes
+        // 4. Create a base query for the main table, respecting the filter
         $orderQuery = Order::query();
 
-        // 5. Apply the status filter if it exists
         if ($filterStatus && $filterStatus !== 'all') {
             $statusId = Status::where('status_name', $filterStatus)->value('id');
             if ($statusId) {
@@ -170,11 +169,15 @@ class OrderController extends Controller
             }
         }
         
-        // 6. Fetch orders for the summary boxes
-        $orders = $orderQuery->with(['buyer', 'supplier'])->get();
+        // 5. Fetch orders for the main table and reports
+        $ordersForTable = $orderQuery->with(['buyer', 'supplier'])->get();
+
+        // 6. Create a separate query JUST for the "Pending" summary
+        $pendingStatusId = Status::where('status_name', 'pending')->value('id');
+        $pendingOrders = Order::where('order_status', $pendingStatusId)->get();
 
         // 7. Aggregate data for the buyer summary table
-        $buyerReports = $orders->groupBy('order_buyer')->map(function ($buyerOrders) {
+        $buyerReports = $ordersForTable->groupBy('order_buyer')->map(function ($buyerOrders) {
             $buyer = $buyerOrders->first()->buyer;
             return [
                 'buyer_name' => $buyer->buyer_name ?? 'N/A',
@@ -185,7 +188,7 @@ class OrderController extends Controller
         })->values();
 
         // 8. Aggregate data for the supplier summary table
-        $supplierReports = $orders->whereNotNull('supplier_id')->groupBy('supplier_id')->map(function ($supplierOrders) {
+        $supplierReports = $ordersForTable->whereNotNull('supplier_id')->groupBy('supplier_id')->map(function ($supplierOrders) {
             $supplier = $supplierOrders->first()->supplier;
             if (!$supplier) return null; // Skip if supplier is somehow missing
             return [
@@ -194,11 +197,16 @@ class OrderController extends Controller
                 'total_amount' => $supplierOrders->sum('supplier_total'),
                 'supplier_id' => $supplier->id ?? null,
             ];
-        })->filter()->values(); // filter() removes any null entries
+        })->filter()->values();
 
-        // 9. Pass ALL data to the view
+        // 9. Pass ALL data to the view, using the correct collections
         return view('order.index', compact(
-            'orders', 'statuses', 'suppliers', 'buyerReports', 'filterStatus',
+            'pendingOrders', // Used for the summary boxes
+            'ordersForTable', // Used for the report tables
+            'statuses', 
+            'suppliers', 
+            'buyerReports', 
+            'filterStatus',
             'supplierReports'
         ));
     }
@@ -492,6 +500,7 @@ public function getOrdersData(Request $request)
         $query->where(function ($q) use ($searchValue) {
             $q->where('id', 'like', "%{$searchValue}%")
               ->orWhere('order_remark', 'like', "%{$searchValue}%")
+              ->orWhere('order_shipmentno', 'like', "%{$searchValue}%") // This is the new line
               ->orWhereHas('product', function ($subQ) use ($searchValue) {
                   $subQ->where('product_name', 'like', "%{$searchValue}%");
               })
@@ -511,35 +520,33 @@ public function getOrdersData(Request $request)
     $recordsFiltered = $query->count();
 
     // --- 7. Sorting & Pagination ---
-    if ($orderColumnName == 'product_name') {
+    $query->select('orders.*'); // Explicitly select from orders table to avoid ambiguous columns
+
+    // Define columns that belong to the `orders` table for direct SQL sorting
+    $orderTableColumns = ['id', 'order_date', 'order_deliverydate', 'order_qty', 'order_price', 'buyer_total', 'supplier_total'];
+
+    if (in_array($orderColumnName, $orderTableColumns)) {
+        // Sort by a column in the 'orders' table
+        $query->orderBy('orders.' . $orderColumnName, $orderDir);
+    } elseif ($orderColumnName == 'product_name') {
         $query->leftJoin('products', 'orders.order_productName', '=', 'products.id')
-              ->orderBy('products.product_name', $orderDir)
-              ->select('orders.*');
+              ->orderBy('products.product_name', $orderDir);
     } elseif ($orderColumnName == 'buyer_name') {
         $query->leftJoin('buyers', 'orders.order_buyer', '=', 'buyers.id')
-              ->orderBy('buyers.buyer_name', $orderDir)
-              ->select('orders.*');
+              ->orderBy('buyers.buyer_name', $orderDir);
     } elseif ($orderColumnName == 'supplier_name') {
         $query->leftJoin('suppliers', 'orders.supplier_id', '=', 'suppliers.id')
-              ->orderBy('suppliers.name', $orderDir)
-              ->select('orders.*');
+              ->orderBy('suppliers.name', $orderDir);
     } elseif ($orderColumnName == 'status_name') {
         $query->leftJoin('statuses', 'orders.order_status', '=', 'statuses.id')
-              ->orderBy('statuses.status_name', $orderDir)
-              ->select('orders.*');
+              ->orderBy('statuses.status_name', $orderDir);
     } else {
-        // Default sorting by the main column that should be fixed
-        if (in_array($orderColumnName, ['id', 'order_date', 'order_deliverydate', 'order_qty', 'order_price', 'buyer_total'])) {
-            $query->orderBy($orderColumnName, $orderDir);
-        } else {
-            $query->orderBy('id', 'desc'); // Default sort by order ID
-        }
+        // Default sort for any other case
+        $query->orderBy('orders.id', 'desc');
     }
 
-    $query->skip($start)->take($length);
-
     // --- 8. Execute Query ---
-    $orders = $query->get();
+    $orders = $query->skip($start)->take($length)->get();
 
     // --- 9. Format Data - MUST MATCH CLIENT-SIDE COLUMNS EXACTLY ---
     $data = $orders->map(function($order) {
@@ -781,5 +788,46 @@ public function getOrdersData(Request $request)
         }
 
         return redirect()->route('order.index')->with('success', "Successfully updated {$updatedCount} orders.");
+    }
+
+    public function bulkDelete(Request $request)
+    {
+        $request->validate([
+            'order_ids' => 'required|array',
+            'order_ids.*' => 'exists:orders,id',
+        ]);
+
+        $deletedCount = Order::destroy($request->order_ids);
+
+        return back()->with('success', "Successfully deleted {$deletedCount} orders.");
+    }
+
+    public function bulkDuplicate(Request $request)
+    {
+        $request->validate([
+            'order_ids' => 'required|array',
+            'order_ids.*' => 'exists:orders,id',
+        ]);
+
+        $duplicatedCount = 0;
+        $pendingStatusId = Status::where('status_name', 'pending')->value('id');
+
+        foreach ($request->order_ids as $id) {
+            $originalOrder = Order::find($id);
+            if ($originalOrder) {
+                $newOrder = $originalOrder->replicate();
+                $newOrder->order_date = Carbon::today();
+                $newOrder->order_status = $pendingStatusId;
+                $newOrder->order_shipmentno = null;
+                $newOrder->order_manufacturedqty = null;
+                $newOrder->order_deliverydate = null;
+                $newOrder->created_at = now();
+                $newOrder->updated_at = now();
+                $newOrder->save();
+                $duplicatedCount++;
+            }
+        }
+
+        return back()->with('success', "Successfully duplicated {$duplicatedCount} orders.");
     }
 }
